@@ -88,17 +88,17 @@ int init_bitvectors(fm_index *fm) {
     uint16_t *mini_ranks = calloc(fm->symbols_len, sizeof(uint16_t));
 
     for (size_t i = 0; i < fm->bwt_length; i++) {
-        if (i % MINIHEADER_SIZE == 0) {
-            // set all miniheaders
-            for (size_t j = 0; j < fm->symbols_len; j++) {
-                fm->bitvectors[j].miniheader[i / MINIHEADER_SIZE] = mini_ranks[j];
-            }
-        }
         if (i % MACROHEADER_SIZE == 0) {
             // set all macroheaders
             for (size_t j = 0; j < fm->symbols_len; j++) {
                 fm->bitvectors[j].macroheader[i / MACROHEADER_SIZE] = ranks[j];
                 mini_ranks[j] = 0;  // reset mini rank since new macro block
+            }
+        }
+        if (i % MINIHEADER_SIZE == 0) {
+            // set all miniheaders
+            for (size_t j = 0; j < fm->symbols_len; j++) {
+                fm->bitvectors[j].miniheader[i / MINIHEADER_SIZE] = mini_ranks[j];
             }
         }
 

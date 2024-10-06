@@ -1,3 +1,9 @@
+/**
+ * MEM finder built using FM Indexes. 
+ * @author Suchith Sridhar (B00932400)
+ * @author Anas Alhadi (B00895875)
+ * @date 22 Sep 2024
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

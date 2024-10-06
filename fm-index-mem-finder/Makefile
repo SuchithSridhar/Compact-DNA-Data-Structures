@@ -1,54 +1,52 @@
-CC = gcc --std=c18 -g
+CC = gcc --std=c18 -O3
 BIN_DIR = ./bin
-DATA_DIR = ./data/
-DNA_DATA = ./data/DNA.txt
-DNA_BWT_FOR = ./data/DNA_BWT_FOR.txt
-DNA_BWT_REV = ./data/DNA_BWT_REV.txt
-TEST_DATA = ./data/test.txt
-TEST_BWT_FOR = ./data/test_bwt_for.txt
-TEST_BWT_REV = ./data/test_bwt_rev.txt
+TEST_DIR = ./test
+DATA_DIR = ./data
+TEST_PATTERN = $(TEST_DIR)/pattern.txt
+DNA_DATA = $(DATA_DIR)/DNA.txt
+DNA_BWT_FOR = $(DATA_DIR)/DNA_BWT_FOR.txt
+DNA_BWT_REV = $(DATA_DIR)/DNA_BWT_REV.txt
 
-.PHONY: help clean genBWTs mem_finder
+.PHONY: help clean dna_bwts mem_finder create_dirs test_mem_finder
 
 help:
 	@echo "Options:"
-	@echo "    help clean genBWTs"
+	@echo "    help dna_bwts mem_finder help_mem_finder test_mem_finder"
+	@echo "    note: mem_finder reports MEMs found in the pattern text."
+	@echo "          It prints [mem_start, mem_end) within the pattern."
 
-genBWTs: $(BIN_DIR)/simple_BWT
-	@echo "Generating BWT for DNA.txt in forward direction."
-	cat $(DNA_DATA) | $(BIN_DIR)/simple_BWT > $(DNA_BWT_FOR)
-	@echo "Generating BWT for DNA.txt reversed."
-	cat $(DNA_DATA) | rev | $(BIN_DIR)/simple_BWT > $(DNA_BWT_REV)
+dna_bwts: $(BIN_DIR)/simple_BWT
+	@if [ ! -f $(DNA_BWT_FOR) ]; then \
+		echo "Generating BWT for DNA.txt in forward direction."; \
+		cat $(DNA_DATA) | $(BIN_DIR)/simple_BWT > $(DNA_BWT_FOR); \
+	else \
+		echo "$(DNA_BWT_FOR) already exists, skipping forward BWT generation."; \
+	fi
+	@if [ ! -f $(DNA_BWT_REV) ]; then \
+		echo "Generating BWT for DNA.txt in reverse direction."; \
+		cat $(DNA_DATA) | rev | $(BIN_DIR)/simple_BWT > $(DNA_BWT_REV); \
+	else \
+		echo "$(DNA_BWT_REV) already exists, skipping reverse BWT generation."; \
+	fi
 
-genTestBWT: $(BIN_DIR)/simple_BWT
-	@echo "Generating BWT for test.txt in forward direction."
-	cat $(TEST_DATA) | $(BIN_DIR)/simple_BWT > $(TEST_BWT_FOR)
-	@echo "Generating BWT for test.txt reversed."
-	cat $(TEST_DATA) | rev | $(BIN_DIR)/simple_BWT > $(TEST_BWT_REV)
-
-gdb_mem_finder: $(BIN_DIR)/mem_finder
-	gdb --args $(BIN_DIR)/mem_finder $(DNA_BWT_FOR) $(DNA_BWT_REV)
-
-gdb_mem_finder_test: $(BIN_DIR)/mem_finder
-	gdb --args $(BIN_DIR)/mem_finder $(TEST_BWT_FOR) $(TEST_BWT_REV)
-
-mem_finder: $(BIN_DIR)/mem_finder
+mem_finder: $(BIN_DIR)/mem_finder dna_bwts create_dirs
 	$(BIN_DIR)/mem_finder $(DNA_BWT_FOR) $(DNA_BWT_REV)
 
-mem_finder_test: $(BIN_DIR)/mem_finder
-	$(BIN_DIR)/mem_finder $(TEST_BWT_FOR) $(TEST_BWT_REV)
+help_mem_finder: $(BIN_DIR)/mem_finder create_dirs
+	$(BIN_DIR)/mem_finder
 
-$(BIN_DIR)/mem_finder: mem_finder.c fm_index.c
+test_mem_finder: $(BIN_DIR)/mem_finder dna_bwts create_dirs
+	$(BIN_DIR)/mem_finder $(DNA_BWT_FOR) $(DNA_BWT_REV) < $(TEST_PATTERN)
+
+$(BIN_DIR)/mem_finder: mem_finder.c fm_index.c create_dirs
 	$(CC) mem_finder.c fm_index.c -o $@
 
-$(BIN_DIR)/fm_index: fm_index.c fm_index.h
-	$(CC) fm_index.c -o $@
-
-$(BIN_DIR)/simple_BWT: simple_BWT.c
+$(BIN_DIR)/simple_BWT: simple_BWT.c create_dirs
 	$(CC) simple_BWT.c -o $@
 
-$(BIN_DIR)/create_bwt: create_bwt.c
-	$(CC) create_bwt.c -o $@
+create_dirs:
+	mkdir -p $(BIN_DIR) $(TEST_DIR)
 
 clean:
 	rm -f $(BIN_DIR)/*
+	rm -f $(DNA_BWT_FOR) $(DNA_BWT_REV)
