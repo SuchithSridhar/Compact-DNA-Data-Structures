@@ -32,6 +32,9 @@ dna_bwts: $(BIN_DIR)/simple_BWT
 mem_finder: $(BIN_DIR)/mem_finder dna_bwts create_dirs
 	$(BIN_DIR)/mem_finder $(DNA_BWT_FOR) $(DNA_BWT_REV)
 
+mem_finder_mvt: $(BIN_DIR)/mem_finder dna_bwts create_dirs
+	$(BIN_DIR)/mem_finder $(DNA_BWT_FOR) $(DNA_BWT_REV)
+
 help_mem_finder: $(BIN_DIR)/mem_finder create_dirs
 	$(BIN_DIR)/mem_finder
 
