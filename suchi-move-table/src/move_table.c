@@ -155,6 +155,8 @@ move_table_t *move_table_create(char *bwt, size_t len) {
         // TODO: Very important note
         //  nate thinks ra->array[ra_idx].length
         //     I think  ra->array[i].length
+        //  if we do ra_idx then due to the way offset is being calculated,
+        //  offset will always be 0.
         bwt_idx += ra->array[ra_idx].length;
     }
 
