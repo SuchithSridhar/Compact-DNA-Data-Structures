@@ -146,8 +146,9 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
 
 int main(int argc, char **argv) {
 
-    if (argc != 3) {
-        fprintf(stderr, "\nUsage: %s <BWT file> <Reversed BWT file>\n",
+    if (argc != 4) {
+        fprintf(stderr,
+                "\nUsage: %s <BWT file> <Reversed BWT file> <Pattern file>\n",
                 argv[0]);
         fprintf(
             stderr,
@@ -179,21 +180,32 @@ int main(int argc, char **argv) {
     // move_table_t *mt_reversed =
     //     move_table_create(bwt_reversed.T, bwt_reversed.len);
     // printf("DONE\n");
-    //
+
     char *pattern = malloc(MAX_PATTERN_LENGTH * sizeof(char));
     if (!pattern) {
         fprintf(stderr, "Failed to allocate memory for pattern\n");
         return EXIT_FAILURE;
     }
 
-    size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH, stdin);
-    if (read_len == 0) {
-        fprintf(stderr, "No pattern data read from stdin\n");
-        free(pattern);
-        return EXIT_FAILURE;
+    // size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH,
+    // stdin); if (read_len == 0) {
+    //     fprintf(stderr, "No pattern data read from stdin\n");
+    //     free(pattern);
+    //     return EXIT_FAILURE;
+    // }
+    FILE *pattern_file = fopen(argv[3], "r");
+    size_t pattern_len = 0;
+    uint8_t pattern_count = 0;
+
+    while (getline(&pattern, &pattern_len, pattern_file) != -1) {
+        pattern_count++;
+        printf("MEMs for Pattern %d\n", pattern_count);
+        printf("============================================\n");
+        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, pattern_len);
+        printf("\n");
     }
 
-    find_mems(p1.table, p1.r, p2.table, p2.r, pattern, read_len);
+    // find_mems(p1.table, p1.r, p2.table, p2.r, pattern, read_len);
 
     free(pattern);
 
