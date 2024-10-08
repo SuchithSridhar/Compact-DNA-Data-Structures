@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     size_t start_idx;
@@ -15,6 +16,11 @@ typedef struct {
     size_t length;
     size_t capacity;
 } runs_array_t;
+
+typedef struct {
+    size_t ra_idx;
+    size_t bwt_idx;
+} ra_find_return;
 
 #define ARR_GROWTH_SIZE 2
 #define ARR_INIT_SIZE 256
@@ -59,6 +65,46 @@ runs_array_t *_move_table_runs_array_create() {
     return ra;
 }
 
+runs_array_t *_move_table_runs_array_copy(runs_array_t *ra) {
+    assert(ra != NULL);
+    assert(ra->array != NULL);
+
+    runs_array_t *ra_copy = malloc(sizeof(runs_array_t));
+    if (ra_copy == NULL) {
+        perror("Error: could not allocate memory for runs array structure.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    ra_copy->array = malloc(sizeof(run_t) * ra->length);
+    if (ra_copy->array == NULL) {
+        perror("Error: could not allocate memory to create run array.\n");
+        free(ra_copy);
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(ra_copy->array, ra->array, sizeof(run_t) * ra->length);
+
+    ra_copy->length = ra->length;
+    ra_copy->capacity = ra->length;
+
+    return ra_copy;
+}
+
+// Function to print a single run_t element
+void _move_table_run_print(const run_t *run) {
+    printf("Run { head: '%c', length: %u, start_idx: %zu }\n", run->head,
+           run->length, run->start_idx);
+}
+
+void _move_table_runs_array_print(runs_array_t *ra) {
+    printf("Runs Array (length: %zu, capacity: %zu):\n", ra->length,
+           ra->capacity);
+    for (size_t i = 0; i < ra->length; ++i) {
+        printf("  [%zu] ", i);
+        _move_table_run_print(&ra->array[i]);
+    }
+}
+
 void _move_table_runs_array_destroy(runs_array_t *ra) {
     assert(ra != NULL);
 
@@ -95,22 +141,26 @@ void _move_table_sort_runs_by_head(runs_array_t *runs_array) {
  * We can make it even faster using as hashmap, using O(n) space and
  * O(1) running time. n is the size of the bwt.
  */
-size_t _move_table_runs_array_find(runs_array_t *ra, size_t idx) {
+ra_find_return _move_table_runs_array_find(runs_array_t *ra, size_t idx) {
     assert(ra != NULL);
 
+    size_t sum = 0;
     for (size_t i = 0; i < ra->length; i++) {
         size_t sidx = ra->array[i].start_idx;
         uint8_t l = ra->array[i].length;
 
         if (idx >= sidx && idx < sidx + l) {
-            return i;
+            return (ra_find_return){.ra_idx = i, .bwt_idx = sum};
         }
+
+        sum += ra->array[i].length;
     }
 
     // should never reach here if used correctly
+    printf("idx: %zu", idx);
     assert(0);
     // something outside bounds
-    return ra->length + 1;
+    return (ra_find_return){.ra_idx = 0, .bwt_idx = 0};
 }
 
 move_table_t *move_table_create(char *bwt, size_t len) {
@@ -138,7 +188,18 @@ move_table_t *move_table_create(char *bwt, size_t len) {
     _move_table_run_array_insert(ra, cur);
 
     // sort runs lexicographically
-    _move_table_sort_runs_by_head(ra);
+    runs_array_t *ra_sorted = _move_table_runs_array_copy(ra);
+    _move_table_sort_runs_by_head(ra_sorted);
+
+    assert(ra_sorted != NULL);
+    assert(ra_sorted->array != NULL);
+    assert(ra_sorted->length == ra->length);
+
+    // printf(">>> INITAL RUNS ARRAY:\n");
+    // _move_table_runs_array_print(ra);
+
+    // printf(">>> SORTED RUNS ARRAY:\n");
+    // _move_table_runs_array_print(ra_sorted);
 
     move_table_t *mt = malloc(sizeof(move_table_t));
     mt->table = malloc(sizeof(move_table_row_t) * ra->length);
@@ -146,21 +207,21 @@ move_table_t *move_table_create(char *bwt, size_t len) {
 
     size_t bwt_idx = 0;
     for (size_t i = 0; i < ra->length; i++) {
-        size_t ra_idx = _move_table_runs_array_find(ra, bwt_idx);
-        mt->table[i].head = ra->array[ra_idx].head;
-        mt->table[i].length = ra->array[ra_idx].length;
-        mt->table[i].ptr = ra_idx;
-        mt->table[i].offset = bwt_idx - ra->array[ra_idx].start_idx;
 
-        // TODO: Very important note
-        //  nate thinks ra->array[ra_idx].length
-        //     I think  ra->array[i].length
-        //  if we do ra_idx then due to the way offset is being calculated,
-        //  offset will always be 0.
-        bwt_idx += ra->array[ra_idx].length;
+        ra_find_return raf =
+            _move_table_runs_array_find(ra_sorted, ra->array[i].start_idx);
+        ra_find_return ral = _move_table_runs_array_find(ra, raf.bwt_idx);
+
+        mt->table[i].head = ra->array[i].head;
+        mt->table[i].length = ra->array[i].length;
+        mt->table[i].ptr = ral.ra_idx;
+        mt->table[i].offset = raf.bwt_idx - ra->array[ral.ra_idx].start_idx;
+
+        bwt_idx += ra->array[i].length;
     }
 
     _move_table_runs_array_destroy(ra);
+    _move_table_runs_array_destroy(ra_sorted);
 
     return mt;
 }
