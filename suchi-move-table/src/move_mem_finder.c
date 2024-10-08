@@ -1,4 +1,3 @@
-#include "file_utils.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -70,43 +69,34 @@ int forward_backward(move_table_t *mtb, int mt_length, int64_t start,
 
     while (SLTEE(s_run, s_offset, e_run, e_offset) && pi < pattern_size &&
            pi >= 0) {
-        printf("dir: %d, s_run: %ld, s_off %d, e_run: %ld, e_off: %d\n",
-               direction, s_run, s_offset, e_run, e_offset);
 
-        // if head char != looking char, move s down table
-        while (mtb[s_run].head != pattern[pi]) {
+        while (s_run < mt_length && mtb[s_run].head != pattern[pi]) {
             s_run++;
             s_offset = 0;
-            assert(s_run < mt_length);
         }
 
-        // if head char != looking char, move e up table
-        while (mtb[e_run].head != pattern[pi]) {
+        while (e_run >= 0 && mtb[e_run].head != pattern[pi]) {
             e_run--;
             e_offset = mtb[e_run].length - 1;
-            assert(e_run >= 0);
         }
 
-        if (!SLTEE(s_run, s_offset, e_run, e_offset))
+        if (!SLTEE(s_run, s_offset, e_run, e_offset)) {
             break;
+        }
 
-        // jump for s using move table
         s_offset += mtb[s_run].offset;
         s_run = mtb[s_run].pointer;
 
-        // while s is off the current run, move to next run
+        e_offset += mtb[e_run].offset;
+        e_run = mtb[e_run].pointer;
+
         while (s_offset >= mtb[s_run].length) {
             s_offset -= mtb[s_run].length;
             s_run++;
         }
 
-        // jump for e using move table
-        e_offset += mtb[e_run].offset;
-        e_run = mtb[e_run].pointer;
-
-        // while e is off the current run, move to next run
-        while (e_offset >= mtb[e_run].length) {
-            e_offset -= mtb[e_run].length;
+        while (e_offset >= (int)mtb[e_run].length) {
+            e_offset -= (int)mtb[e_run].length;
             e_run++;
         }
 
@@ -125,6 +115,7 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
               size_t pattern_size) {
     int64_t mem_start = 0;
     int64_t mem_end = 0;
+    int64_t mem_count = 0;
 
     while (mem_end <= pattern_size - 1) {
         int64_t steps_fw =
@@ -133,7 +124,8 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
         mem_end = mem_start + steps_fw;
 
         if (steps_fw >= MIN_MEM_LENGTH) {
-            printf("MEM (start=%ld, end=%ld, len=%ld)\n", mem_start, mem_end,
+            mem_count++;
+            printf("MEM (start=%lld, end=%lld, len=%lld)\n", mem_start, mem_end,
                    steps_fw);
         }
 
@@ -148,7 +140,8 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
 
         mem_start = new_mem_start;
     }
-    return 0;
+
+    return mem_count;
 }
 
 int main(int argc, char **argv) {
