@@ -10,7 +10,7 @@
 #include "fm_index.h"
 
 #define MAX_PATTERN_LENGTH 1000000
-#define MIN_MEM_LENGTH 1
+#define MIN_MEM_LENGTH 40
 
 #define FORWARD 1
 #define BACKWARD -1

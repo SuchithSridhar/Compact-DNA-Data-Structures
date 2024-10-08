@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LENGTH 1000000
+#define LENGTH 10000001
 
 char T[LENGTH];
 
