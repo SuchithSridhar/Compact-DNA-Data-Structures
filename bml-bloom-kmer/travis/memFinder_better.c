@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define RANGES_SIZE 10000
+
 typedef struct row {
   char head;
   unsigned char length;
@@ -41,6 +43,16 @@ int checkFilter();
 
 // ============================
 
+void printRanges(range_t *ranges) {
+  for (int i = 0; i < RANGES_SIZE; i++) {
+    // assuming that init to 0
+    if (ranges[i].start == 0 && ranges[i].end == 0) {
+      break;
+    }
+    printf("[%d, %d)\n", ranges[i].start, ranges[i].end);
+  }
+}
+
 int n;
 
 int r;
@@ -72,13 +84,14 @@ int pow5;
 range_t *findValidSubstrings() {
   int x = 0;
   int xPrime = 0;
-  range_t *ranges = malloc(sizeof(range_t) * 100);
+  range_t *ranges = calloc(RANGES_SIZE, sizeof(range_t));
   int range_index = 0;
   int valid_range = 1;
 
   while (x + L - 1 <= m - 1) {
     xPrime = x;
     window = 0;
+    valid_range = 1;
 
     for (int i = x + L - 1; i >= x; i--) {
       windowLeft(P[i], (i + k <= x + L - 1 ? P[i + k] : '#'));
@@ -94,19 +107,21 @@ range_t *findValidSubstrings() {
     }
 
     if (valid_range) {
-      if (range_index != 0 && x < ranges[range_index].end) {
-        ranges[range_index].end = x + L;
+      printf(">>> [%d, %d)\n", x, x + L);
+
+      if (range_index != 0 && x < ranges[range_index - 1].end) {
+        ranges[range_index - 1].end = x + L;
       } else {
         ranges[range_index].start = x;
         ranges[range_index].end = x + L;
         range_index++;
       }
-
       x++;
     } else {
       x = xPrime;
     }
   }
+  printf("ri: %d\n", range_index);
 
   return ranges;
 }
@@ -175,7 +190,9 @@ int main(int argc, char *argv[]) {
   stepCount = 0;
   clock_t startTime = clock();
 
-  range_t ranges = findValidSubstrings();
+  range_t *ranges = findValidSubstrings();
+  // printRanges(ranges);
+  return 0;
 
   printf("%i MEM(s) of length at least %i found.\n", memCount, L);
   printf("%f seconds elapsed.\n",
