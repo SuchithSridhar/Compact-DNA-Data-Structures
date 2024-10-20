@@ -43,16 +43,6 @@ int checkFilter();
 
 // ============================
 
-void printRanges(range_t *ranges) {
-  for (int i = 0; i < RANGES_SIZE; i++) {
-    // assuming that init to 0
-    if (ranges[i].start == 0 && ranges[i].end == 0) {
-      break;
-    }
-    printf("[%d, %d)\n", ranges[i].start, ranges[i].end);
-  }
-}
-
 int n;
 
 int r;
@@ -81,6 +71,19 @@ int pow5;
 
 // ============================
 
+void printRanges(range_t *ranges) {
+  for (int i = 0; i < RANGES_SIZE; i++) {
+    // assuming that init to 0
+    if (ranges[i].start == 0 && ranges[i].end == 0) {
+      break;
+    }
+    char tmp = P[ranges[i].end];
+    P[ranges[i].end] = '\0';
+    fprintf(stdout, "%s\n", &P[ranges[i].start]);
+    P[ranges[i].end] = tmp;
+  }
+}
+
 range_t *findValidSubstrings() {
   int x = 0;
   int xPrime = 0;
@@ -107,7 +110,6 @@ range_t *findValidSubstrings() {
     }
 
     if (valid_range) {
-      printf(">>> [%d, %d)\n", x, x + L);
 
       if (range_index != 0 && x < ranges[range_index - 1].end) {
         ranges[range_index - 1].end = x + L;
@@ -121,7 +123,6 @@ range_t *findValidSubstrings() {
       x = xPrime;
     }
   }
-  printf("ri: %d\n", range_index);
 
   return ranges;
 }
@@ -191,8 +192,7 @@ int main(int argc, char *argv[]) {
   clock_t startTime = clock();
 
   range_t *ranges = findValidSubstrings();
-  // printRanges(ranges);
-  return 0;
+  printRanges(ranges);
 
   printf("%i MEM(s) of length at least %i found.\n", memCount, L);
   printf("%f seconds elapsed.\n",
