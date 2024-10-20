@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define MAX_PATTERN_LENGTH 1000000
-#define MIN_MEM_LENGTH 40
+#define MIN_MEM_LENGTH 10
 
 #define FORWARD 1
 #define BACKWARD -1
@@ -74,8 +74,9 @@ int find_mems(fm_index *fm_index_straight, fm_index *fm_index_reversed,
 
 int main(int argc, char **argv) {
 
-    if (argc != 3) {
-        fprintf(stderr, "\nUsage: %s <BWT file> <Reversed BWT file>\n",
+    if (argc != 4) {
+        fprintf(stderr,
+                "\nUsage: %s <BWT file> <Reversed BWT file> <Pattern file>\n",
                 argv[0]);
         fprintf(
             stderr,
@@ -111,16 +112,26 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH, stdin);
-    if (read_len == 0) {
-        fprintf(stderr, "No pattern data read from stdin\n");
-        free(pattern);
-        fm_index_destroy(fm);
-        fm_index_destroy(rev_fm);
-        return EXIT_FAILURE;
-    }
+    // size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH,
+    // stdin); if (read_len == 0) {
+    //     fprintf(stderr, "No pattern data read from stdin\n");
+    //     free(pattern);
+    //     fm_index_destroy(fm);
+    //     fm_index_destroy(rev_fm);
+    //     return EXIT_FAILURE;
+    // }
 
-    find_mems(fm, rev_fm, pattern, read_len);
+    FILE *pattern_file = fopen(argv[3], "r");
+    size_t pattern_len = 0;
+    uint8_t pattern_count = 0;
+
+    while (getline(&pattern, &pattern_len, pattern_file) != -1) {
+        pattern_count++;
+        printf("MEMs for Pattern %d\n", pattern_count);
+        printf("============================================\n");
+        find_mems(fm, rev_fm, pattern, pattern_len);
+        printf("\n");
+    }
 
     free(pattern);
     fm_index_destroy(fm);
