@@ -1,0 +1,12 @@
+BasedOnStyle: LLVM
+
+# General formatting options
+IndentWidth: 4             # Set indentation to 4 spaces
+TabWidth: 4                # Set tab width to 4 spaces
+UseTab: Never              # Always use spaces instead of tabs
+BreakBeforeBraces: Attach  # Optionally choose a brace style
+
+# Additional formatting options for clarity
+ColumnLimit: 80         # Wrap lines at 80 characters
+AllowShortFunctionsOnASingleLine: Empty  # Controls single-line functions
+
