@@ -59,7 +59,7 @@ int insPar;
 int window;
 
 // declare bloom filter
-bloom_filter_t *bloom_filter;
+bloom_filter_t* bloom_filter;
 
 
 void printRanges(range_t *ranges) {
@@ -77,7 +77,7 @@ void printRanges(range_t *ranges) {
 
 range_t *findValidSubstrings() {
   // create bloom filter
-  bloom_filter_t *bloom_filter = malloc(sizeof(bloom_filter_t));
+  bloom_filter = malloc(sizeof(bloom_filter_t));
   bloom_filter = bf_create(8, hash_functions, 6); 
 
   int x = 0;
@@ -85,7 +85,7 @@ range_t *findValidSubstrings() {
   range_t *ranges = calloc(RANGES_SIZE, sizeof(range_t));
   int range_index = 0;
   int valid_range = 1;
-
+  
   while (x + MIN_MEM_LENGTH - 1 <= PATTERN_LENGTH - 1) {
     xPrime = x;
     window = 0;
@@ -125,12 +125,13 @@ range_t *findValidSubstrings() {
 
 int main(int argc, char *argv[]) {
 
-  printf("Usage: ./memFinder <pattern file> <k> <insPar>\n");
+  printf("Usage: ./memFinder <pattern file> <k> <insPar> <min_mem_length>\n");
 
   // load pattern and pattern length
   char* patternFileName = argv[1];
   k = atoi(argv[2]);
   insPar = atoi(argv[3]);
+  MIN_MEM_LENGTH = atoi(argv[4]);
 
 
   pow5 = 1;
@@ -147,10 +148,13 @@ int main(int argc, char *argv[]) {
 
   char *line = NULL;
   size_t len = 0;
-  ssize_t read;
+  size_t read;
+
+  int currPattern = 0;
 
   while ((read = getline(&line, &len, patternFile)) != -1) {
-    printf("Pattern: %s\n", line);
+    currPattern++;
+    printf("\n\n======= Pattern %d ========\n\n", currPattern);
     // Remove newline character if present
     if (line[read - 1] == '\n') {
         line[read - 1] = '\0';
@@ -158,7 +162,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Allocate memory for the pattern
-    char *PATTERN = (char *)malloc(read);
+    PATTERN = (char *)malloc(read);
     if (PATTERN == NULL) {
         perror("Unable to allocate memory for pattern");
         exit(EXIT_FAILURE);
@@ -168,7 +172,7 @@ int main(int argc, char *argv[]) {
     strncpy(PATTERN, line, read);
 
     // Set the pattern length
-    int PATTERN_LENGTH = (int)read;
+    PATTERN_LENGTH = (int)read;
 
     // Call the function with the pattern and its length
     range_t* ranges = findValidSubstrings();
