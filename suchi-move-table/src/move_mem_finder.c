@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define MAX_PATTERN_LENGTH 1000000
-#define MIN_MEM_LENGTH 20
+#define MIN_MEM_LENGTH 10
 
 #define FORWARD 1
 #define BACKWARD -1
