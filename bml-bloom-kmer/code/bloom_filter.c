@@ -1,5 +1,5 @@
-#include "bloom_filter.h"
-#include "bitvector.h"
+#include "include/bloom_filter.h"
+#include "include/bitvector.h"
 #include <assert.h>
 #include <stdlib.h>
 

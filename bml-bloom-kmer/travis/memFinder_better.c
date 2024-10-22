@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include "../code/include/bitvector.h"
+#include "../code/include/bloom_filter.h"
 
 #define RANGES_SIZE 10000
 
@@ -24,52 +27,40 @@ typedef struct range {
   int end;
 } range_t;
 
-void loadTable(char *tableFileName);
-void loadRevTable(char *revTableFileName);
+// define an array of hash_functions to be used in the bloom filter
+hash_function_t hash_functions[] = {
+    {59515879, 95578445, 56887169},
+    {65835776, 22503992, 34543247},
+    {63372674, 9287645, 31428521},
+    {58184635, 49547574, 64362491},
+    {79157700, 94338060, 15976133},
+    {88994189, 67949655, 63991913}
+};
+
+
 range_t *findValidSubstrings();
-
-void loadPattern(char *patternFileName);
-
-searchResult *prefSearch(int x);
-int sufSearch(int y);
-
-int width(searchResult *result);
 
 // === functions for filter ===
 
-void loadFilter(char *filterFileName);
 void windowLeft(char leftChar, char rightChar);
 int checkFilter();
 
 // ============================
 
-int n;
+int PATTERN_LENGTH;
+char *PATTERN;
 
-int r;
-row *table;
-
-int rBar;
-row *revTable;
-
-int m;
-char *P;
-
-int L;
-
-int stepCount;
-
-// === variables for filter ===
+int MIN_MEM_LENGTH;
 
 int k;
-int filterSize;
+int pow5;
 int insPar;
 
-char *filter;
-
 int window;
-int pow5;
 
-// ============================
+// declare bloom filter
+bloom_filter_t *bloom_filter;
+
 
 void printRanges(range_t *ranges) {
   for (int i = 0; i < RANGES_SIZE; i++) {
@@ -77,29 +68,33 @@ void printRanges(range_t *ranges) {
     if (ranges[i].start == 0 && ranges[i].end == 0) {
       break;
     }
-    char tmp = P[ranges[i].end];
-    P[ranges[i].end] = '\0';
-    fprintf(stdout, "%s\n", &P[ranges[i].start]);
-    P[ranges[i].end] = tmp;
+    char tmp = PATTERN[ranges[i].end];
+    PATTERN[ranges[i].end] = '\0';
+    fprintf(stdout, "%s\n", &PATTERN[ranges[i].start]);
+    PATTERN[ranges[i].end] = tmp;
   }
 }
 
 range_t *findValidSubstrings() {
+  // create bloom filter
+  bloom_filter_t *bloom_filter = malloc(sizeof(bloom_filter_t));
+  bloom_filter = bf_create(8, hash_functions, 6); 
+
   int x = 0;
   int xPrime = 0;
   range_t *ranges = calloc(RANGES_SIZE, sizeof(range_t));
   int range_index = 0;
   int valid_range = 1;
 
-  while (x + L - 1 <= m - 1) {
+  while (x + MIN_MEM_LENGTH - 1 <= PATTERN_LENGTH - 1) {
     xPrime = x;
     window = 0;
     valid_range = 1;
 
-    for (int i = x + L - 1; i >= x; i--) {
-      windowLeft(P[i], (i + k <= x + L - 1 ? P[i + k] : '#'));
+    for (int i = x + MIN_MEM_LENGTH - 1; i >= x; i--) {
+      windowLeft(PATTERN[i], (i + k <= x + MIN_MEM_LENGTH - 1 ? PATTERN[i + k] : '#'));
 
-      if (i <= x + L - k &&
+      if (i <= x + MIN_MEM_LENGTH - k &&
           ((94607073 * (long long)window + 54204618) % 55586519) % insPar ==
               0 &&
           !checkFilter()) {
@@ -112,16 +107,17 @@ range_t *findValidSubstrings() {
     if (valid_range) {
 
       if (range_index != 0 && x < ranges[range_index - 1].end) {
-        ranges[range_index - 1].end = x + L;
+        ranges[range_index - 1].end = x + MIN_MEM_LENGTH;
       } else {
         ranges[range_index].start = x;
-        ranges[range_index].end = x + L;
+        ranges[range_index].end = x + MIN_MEM_LENGTH;
         range_index++;
       }
       x++;
     } else {
       x = xPrime;
     }
+
   }
 
   return ranges;
@@ -129,55 +125,13 @@ range_t *findValidSubstrings() {
 
 int main(int argc, char *argv[]) {
 
-  fprintf(stderr, "usage: memFinder DATASET.mvt TESATAD.mvt PATTERN.txt ");
-  fprintf(stderr, "[Y/N : print MEMs] [Y/N : print frequencies] [Y/N : use "
-                  "BML] [min MEM length] ");
-  fprintf(stderr, "[Y/N : use filter] DATASET.blm\n");
+  printf("Usage: ./memFinder <pattern file> <k> <insPar>\n");
 
-  loadTable(argv[1]);
-  loadRevTable(argv[2]);
-  loadPattern(argv[3]);
+  // load pattern and pattern length
+  char* patternFileName = argv[1];
+  k = atoi(argv[2]);
+  insPar = atoi(argv[3]);
 
-  int PRINT;
-
-  if (argv[4][0] == 'Y') {
-    PRINT = 1;
-  } else {
-    PRINT = 0;
-  }
-
-  int WIDTH;
-
-  if (argv[5][0] == 'Y') {
-    WIDTH = 1;
-  } else {
-    WIDTH = 0;
-  }
-
-  int BML;
-
-  if (argv[6][0] == 'Y') {
-    BML = 1;
-    fprintf(stderr, "using BML\n");
-  } else {
-    BML = 0;
-    fprintf(stderr, "using forward-backward\n");
-  }
-
-  L = atoi(argv[7]);
-
-  // === filter setup ===
-
-  int FILTER;
-
-  if (argv[8][0] == 'Y') {
-    FILTER = 1;
-    loadFilter(argv[9]);
-    fprintf(stderr, "using filter: k = %i, filterSize = %i, insPar = %i\n", k,
-            filterSize, insPar);
-  } else {
-    FILTER = 0;
-  }
 
   pow5 = 1;
 
@@ -185,233 +139,45 @@ int main(int argc, char *argv[]) {
     pow5 *= 5;
   }
 
-  // ====================
-
-  int memCount = 0;
-  stepCount = 0;
-  clock_t startTime = clock();
-
-  range_t *ranges = findValidSubstrings();
-  printRanges(ranges);
-
-  printf("%i MEM(s) of length at least %i found.\n", memCount, L);
-  printf("%f seconds elapsed.\n",
-         (double)(clock() - startTime) / CLOCKS_PER_SEC);
-  printf("%i steps taken.\n", stepCount);
-
-  if (FILTER) {
-    free(filter);
+  FILE *patternFile = fopen("patterns.txt", "r");
+  if (patternFile == NULL) {
+      perror("Unable to open pattern file");
+      return EXIT_FAILURE;
   }
 
-  free(table);
-  free(revTable);
-  free(P);
+  char *line = NULL;
+  size_t len = 0;
+  ssize_t read;
 
-  return 0;
-}
+  while ((read = getline(&line, &len, patternFile)) != -1) {
+    printf("Pattern: %s\n", line);
+    // Remove newline character if present
+    if (line[read - 1] == '\n') {
+        line[read - 1] = '\0';
+        read--; // Adjust the length to exclude the newline character
+    }
 
-void loadTable(char *tableFileName) {
+    // Allocate memory for the pattern
+    char *PATTERN = (char *)malloc(read);
+    if (PATTERN == NULL) {
+        perror("Unable to allocate memory for pattern");
+        exit(EXIT_FAILURE);
+    }
 
-  FILE *tableFile = fopen(tableFileName, "rb");
+    // Copy the line to the pattern
+    strncpy(PATTERN, line, read);
 
-  fread(&n, sizeof(int), 1, tableFile);
-  fread(&r, sizeof(int), 1, tableFile);
+    // Set the pattern length
+    int PATTERN_LENGTH = (int)read;
 
-  table = (row *)malloc(r * sizeof(row));
+    // Call the function with the pattern and its length
+    range_t* ranges = findValidSubstrings();
+    printRanges(ranges);
 
-  for (int i = 0; i < r; i++) {
-    fread(&table[i].head, 1, 1, tableFile);
-    fread(&table[i].length, 1, 1, tableFile);
-    fread(&table[i].pointer, sizeof(int), 1, tableFile);
-    fread(&table[i].offset, 1, 1, tableFile);
   }
 
-  fclose(tableFile);
-
-  return;
-}
-
-void loadRevTable(char *revTableFileName) {
-
-  FILE *revTableFile = fopen(revTableFileName, "rb");
-
-  fread(&n, sizeof(int), 1, revTableFile);
-  fread(&rBar, sizeof(int), 1, revTableFile);
-
-  revTable = (row *)malloc(rBar * sizeof(row));
-
-  for (int i = 0; i < rBar; i++) {
-    fread(&revTable[i].head, 1, 1, revTableFile);
-    fread(&revTable[i].length, 1, 1, revTableFile);
-    fread(&revTable[i].pointer, sizeof(int), 1, revTableFile);
-    fread(&revTable[i].offset, 1, 1, revTableFile);
-  }
-
-  fclose(revTableFile);
-
-  return;
-}
-
-void loadPattern(char *patternFileName) {
-
-  FILE *patternFile = fopen(patternFileName, "r");
-
-  fseek(patternFile, 0, SEEK_END);
-  m = (int)ftell(patternFile);
-  rewind(patternFile);
-
-  P = (char *)malloc(m);
-
-  fread(P, 1, m, patternFile);
   fclose(patternFile);
-
-  return;
-}
-
-searchResult *prefSearch(int x) {
-
-  searchResult *result = (searchResult *)malloc(sizeof(searchResult));
-
-  int sRun = 0;
-  int sOffset = 0;
-
-  int eRun = rBar - 1;
-  int eOffset = (int)revTable[rBar - 1].length - 1;
-
-  result->matchLength = 0;
-  result->sRun = sRun;
-  result->sOffset = sOffset;
-  result->eRun = eRun;
-  result->eOffset = eOffset;
-
-  for (int i = x; i < m; i++) {
-
-    while (sRun < rBar && revTable[sRun].head != P[i]) {
-      sRun++;
-      sOffset = 0;
-    }
-
-    while (eRun >= 0 && revTable[eRun].head != P[i]) {
-      eRun--;
-      eOffset = revTable[eRun].length - 1;
-    }
-
-    if (sRun > eRun || (sRun == eRun && sOffset > eOffset) ||
-        revTable[sRun].head != P[i]) {
-      break;
-    }
-
-    sOffset += (int)revTable[sRun].offset;
-    sRun = revTable[sRun].pointer;
-
-    eOffset += (int)revTable[eRun].offset;
-    eRun = revTable[eRun].pointer;
-
-    while (sOffset >= (int)revTable[sRun].length) {
-      sOffset -= (int)revTable[sRun].length;
-      sRun++;
-    }
-
-    while (eOffset >= (int)revTable[eRun].length) {
-      eOffset -= (int)revTable[eRun].length;
-      eRun++;
-    }
-
-    result->matchLength++;
-    result->sRun = sRun;
-    result->sOffset = sOffset;
-    result->eRun = eRun;
-    result->eOffset = eOffset;
-
-    stepCount++;
-  }
-
-  return (result);
-}
-
-int sufSearch(int y) {
-
-  int matchLength = 0;
-
-  int sRun = 0;
-  int sOffset = 0;
-
-  int eRun = r - 1;
-  int eOffset = (int)table[r - 1].length - 1;
-
-  for (int i = y; i >= 0 && matchLength < L; i--) {
-
-    while (sRun < r && table[sRun].head != P[i]) {
-      sRun++;
-      sOffset = 0;
-    }
-
-    while (eRun >= 0 && table[eRun].head != P[i]) {
-      eRun--;
-      eOffset = table[eRun].length - 1;
-    }
-
-    if (sRun > eRun || (sRun == eRun && sOffset > eOffset) ||
-        table[sRun].head != P[i]) {
-      break;
-    }
-
-    sOffset += (int)table[sRun].offset;
-    sRun = table[sRun].pointer;
-
-    eOffset += (int)table[eRun].offset;
-    eRun = table[eRun].pointer;
-
-    while (sOffset >= (int)table[sRun].length) {
-      sOffset -= (int)table[sRun].length;
-      sRun++;
-    }
-
-    while (eOffset >= (int)table[eRun].length) {
-      eOffset -= (int)table[eRun].length;
-      eRun++;
-    }
-
-    matchLength++;
-
-    stepCount++;
-  }
-
-  return (matchLength);
-}
-
-int width(searchResult *result) {
-
-  int w = 0;
-
-  while (result->sRun < result->eRun) {
-    w += (int)revTable[result->sRun].length - (result->sOffset);
-    result->sRun++;
-    result->sOffset = 0;
-  }
-
-  w += (result->eOffset) - (result->sOffset) + 1;
-
-  return (w);
-}
-
-// === code for filter ===
-
-void loadFilter(char *filterFileName) {
-
-  FILE *filterFile = fopen(filterFileName, "rb");
-
-  fread(&k, 1, sizeof(int), filterFile);
-  fread(&filterSize, 1, sizeof(int), filterFile);
-  fread(&insPar, 1, sizeof(int), filterFile);
-
-  filter = (char *)malloc(filterSize / 8 + 1);
-
-  fread(filter, 1, filterSize / 8 + 1, filterFile);
-
-  fclose(filterFile);
-
-  return;
+  return 0;
 }
 
 void windowLeft(char leftChar, char rightChar) {
@@ -452,45 +218,8 @@ void windowLeft(char leftChar, char rightChar) {
 }
 
 int checkFilter() {
+    
+    long long v = (long long)window;
 
-  long long v = (long long)window;
-  int bitPos;
-
-  bitPos = (int)(((59515879 * v + 95578445) % 56887169) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  bitPos = (int)(((65835776 * v + 22503992) % 34543247) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  bitPos = (int)(((63372674 * v + 9287645) % 31428521) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  bitPos = (int)(((58184635 * v + 49547574) % 64362491) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  bitPos = (int)(((79157700 * v + 94338060) % 15976133) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  bitPos = (int)(((88994189 * v + 67949655) % 63991913) % filterSize);
-
-  if (!(filter[bitPos / 8] & 1 << (bitPos % 8))) {
-    return (0);
-  }
-
-  return (1);
+    return bf_query(bloom_filter, v);
 }
