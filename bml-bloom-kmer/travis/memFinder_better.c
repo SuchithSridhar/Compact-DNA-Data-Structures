@@ -37,7 +37,7 @@ hash_function_t hash_functions[] = {
 };
 
 range_t *findValidSubstrings();
-void windowLeft(char leftChar, char rightChar, int w);
+int windowLeft(char leftChar, char rightChar, int w);
 int checkFilter(int w);
 
 
@@ -78,12 +78,11 @@ range_t *findValidSubstrings() {
     valid_range = 1;
 
     for (int i = x + MIN_MEM_LENGTH - 1; i >= x; i--) {
-      windowLeft(PATTERN[i], (i + k <= x + MIN_MEM_LENGTH - 1 ? PATTERN[i + k] : '#'), window);
+      window = windowLeft(PATTERN[i], (i + k <= x + MIN_MEM_LENGTH - 1 ? PATTERN[i + k] : '#'), window);
 
       if (i <= x + MIN_MEM_LENGTH - k &&
           ((94607073 * (long long)window + 54204618) % 55586519) % insPar ==
-              0 &&
-          !checkFilter(window)) {
+              0 && !checkFilter(window)){
         xPrime = i + 1;
         valid_range = 0;
         break;
@@ -138,17 +137,15 @@ int main(int argc, char *argv[]) {
   fclose(textFile);
 
   // create bloom filter ?
-  bloom_filter = bf_create(1000, hash_functions, 6);
+  bloom_filter = bf_create(8, hash_functions, 6);
   int createWindow = 0;
   int tupleCount = 0;
   for (int i = n - 1; i >= 0; i--) {
-    windowLeft(T[i], (i + k < n ? T[i + k] : '#'), createWindow);
-    if (((94607073 * (long long)createWindow + 54204618) % 55586519) % insPar == 0) {
-      if (!checkFilter(createWindow)) {
+    createWindow = windowLeft(T[i], (i + k < n ? T[i + k] : '#'), createWindow);
+    if (((94607073 * (long long)createWindow + 54204618) % 55586519) % insPar == 0 && !checkFilter(createWindow)) {
         long long v = (long long)createWindow;
         bf_insert(bloom_filter, v);
         tupleCount++;
-      }
     }
   }
   printf("Filter built, %i %i-tuples added to filter.\n", tupleCount, k);
@@ -183,10 +180,16 @@ int main(int argc, char *argv[]) {
   }
 
   fclose(patternFile);
+
+  free(line);
+  free(PATTERN);
+  free(T);
+
+  bf_destroy(bloom_filter);
   return 0;
 }
 
-void windowLeft(char leftChar, char rightChar, int w) {
+int windowLeft(char leftChar, char rightChar, int w) {
 
   switch (rightChar) {
   case 'A':
@@ -220,10 +223,10 @@ void windowLeft(char leftChar, char rightChar, int w) {
     break;
   }
 
-  return;
+  return w;
 }
 
 int checkFilter(int w) {
     long long v = (long long)w;
-    return bf_query(bloom_filter, v);
+    return (int)bf_query(bloom_filter, v);
 }
