@@ -3,12 +3,17 @@ CFLAGS = -Wall -Iinclude -g
 BUILD_DIR = build
 SRC_DIR = .
 
-TARGETS = $(BUILD_DIR)/test_bitvector $(BUILD_DIR)/test_bloom_filter
+TARGETS = $(BUILD_DIR)/test_bitvector $(BUILD_DIR)/test_bloom_filter $(BUILD_DIR)/kmer_filter
 
 BITVECTOR_OBJS = $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/test_bitvector.o
 BLOOM_FILTER_OBJS = $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o $(BUILD_DIR)/test_bloom_filter.o
+KMER_FILTER_OBJS = $(BUILD_DIR)/kmer_filter.o $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o
 
 all: $(TARGETS)
+
+$(BUILD_DIR)/kmer_filter: $(KMER_FILTER_OBJS)
+	@mkdir -p $(BUILD_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
 
 $(BUILD_DIR)/test_bitvector: $(BITVECTOR_OBJS)
 	@mkdir -p $(BUILD_DIR)

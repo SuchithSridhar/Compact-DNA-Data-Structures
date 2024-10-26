@@ -36,16 +36,26 @@ void bf_destroy(bloom_filter_t *bf) {
 
 uint64_t bf_hash(hash_function_t *hf, int64_t value) {
     assert(hf != NULL);
-    return ((hf->A * value) + hf->B) % hf->P;
+    value = value % hf->P;
+    return ((hf->A * value) % hf->P + hf->B) % hf->P;
 }
 
-void bf_insert(bloom_filter_t *bf, int64_t value) {
+int32_t bf_insert(bloom_filter_t *bf, int64_t value) {
     assert(bf != NULL);
 
+    int32_t bits_set = 0;
     for (int i = 0; i < bf->hash_functions_count; i++) {
         u_int64_t hash = bf_hash(&bf->hash_functions[i], value);
-        bv_set_bit(bf->bv, hash % bf->bv->bits);
+        size_t index = hash % bf->bv->bits;
+
+        // NOTE: Can be optimized by directly accessing bitvector.
+        if (!bv_get_bit(bf->bv, index)) {
+            bv_set_bit(bf->bv, index);
+            bits_set++;
+        }
     }
+
+    return bits_set;
 }
 
 bool bf_query(bloom_filter_t *bf, int64_t value) {

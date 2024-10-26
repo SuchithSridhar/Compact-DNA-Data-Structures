@@ -24,7 +24,7 @@ bloom_filter_t *bf_create(size_t bits, hash_function_t *hash_funcs,
                           size_t hash_funcs_count);
 void bf_destroy(bloom_filter_t *bf);
 uint64_t bf_hash(hash_function_t *hf, int64_t value);
-void bf_insert(bloom_filter_t *bf, int64_t value);
+int32_t bf_insert(bloom_filter_t *bf, int64_t value);
 bool bf_query(bloom_filter_t *bf, int64_t value);
 
 #endif
