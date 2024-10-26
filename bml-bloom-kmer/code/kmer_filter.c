@@ -61,7 +61,9 @@ kmer_int_t kmerf_as_int(kmer_filter_t *kf, char *str, size_t start) {
     }
 
     // NOTE: Assumption of AGCT
-    if (kf->_cache_source_string != str || diff > kf->kmer_size) {
+    if (kf->_cache_source_string != str || diff > (kf->kmer_size / 2) + 1) {
+        // I've set the min diff to be k/2 + 1 so that if we need to make more
+        // than half shifts anyway, we can just calc fresh.
         for (int i = 0; i < kf->kmer_size; i++) {
             kmer *= 5;
             kmer += _ssym(str[i]);
