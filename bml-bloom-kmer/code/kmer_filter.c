@@ -175,6 +175,5 @@ int kmerf_save_file(kmer_filter_t *kf, char *filename) {
 
     fclose(file);
 
-    printf("%ld %ld\n", kf->bloom->bv->bytes_allocated, kf->filter_size);
     return EXIT_SUCCESS;
 }
