@@ -35,37 +35,20 @@ void init_kmer_struct(kmer_filter_t *kf, size_t bv_size, int kmer_size,
     }
 }
 
-int main(int argc, char **argv) {
-    if (argc != 6) {
-        fprintf(stderr,
-                "Usage: %s <input text file> <output filename> [k-mer length] "
-                "[filter size in bits] [insertion parameter]\n",
-                argv[0]);
-        fprintf(stderr, "\t* input text file: the source text file to create "
-                        "bloom filter for.\n");
-        fprintf(stderr,
-                "\t* output filename: the file to save the bloom filter to.\n");
-        fprintf(stderr, "\t* k-mer length: size of each k-mer tuple.\n");
-        fprintf(stderr, "\t* filter size: recommended to be about 10 bits per "
-                        "item in set.\n");
-        fprintf(stderr,
-                "\t* insertion parameter: control ratio of kmers inserted.\n");
-        return EXIT_FAILURE;
-    }
-
-    Text t = file_utils_read(argv[1]);
+kmer_filter_t* build_kmer_filter(const char *input_file, const char *output_file, int kmer_length, size_t filter_size, int insertion_param) {
+    Text t = file_utils_read(input_file);
     kmer_filter_t kmer_filter;
-    init_kmer_struct(&kmer_filter, atol(argv[4]), atoi(argv[3]), atoi(argv[5]));
+    init_kmer_struct(&kmer_filter, filter_size, kmer_length, insertion_param);
     kmerf_populate_result_t r = kmerf_populate(&kmer_filter, t);
-    int err = kmerf_save_file(&kmer_filter, argv[2]);
+    int err = kmerf_save_file(&kmer_filter, output_file);
 
     if (err != EXIT_SUCCESS) {
-        fprintf(stderr, "Unable to write to file %s\n", argv[2]);
-        return EXIT_FAILURE;
+        fprintf(stderr, "Unable to write to file %s\n", output_file);
+        exit(EXIT_FAILURE);
     }
 
     printf("Created a file %s where %zu bits set and %zu tuples inserted.\n",
-           argv[2], r.bits_set, r.kmers_inserted);
-
-    return EXIT_SUCCESS;
+           output_file, r.bits_set, r.kmers_inserted);
+    
+    return &kmer_filter;
 }
