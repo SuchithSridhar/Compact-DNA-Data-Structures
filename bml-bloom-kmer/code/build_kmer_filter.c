@@ -20,6 +20,21 @@ hash_function_t hash_funcs[HASH_FUNCTION_COUNT] = {
 hash_function_t insertion_param_hash = {
     .A = 94607073, .B = 54204618, .P = 55586519};
 
+void init_kmer_struct(kmer_filter_t *kf, size_t bv_size, int kmer_size,
+                      int ins_param) {
+    kf->bloom = bf_create(bv_size, hash_funcs, HASH_FUNCTION_COUNT);
+    kf->kmer_size = kmer_size;
+    kf->filter_size = bv_size;
+    kf->_five_to_pow_km1 = 1;
+    kf->_cache_source_string = NULL;
+    kf->insertion_hash = insertion_param_hash;
+    kf->insertion_param = ins_param;
+
+    for (int i = 0; i < kmer_size - 1; i++) {
+        kf->_five_to_pow_km1 *= 5;
+    }
+}
+
 int main(int argc, char **argv) {
     if (argc != 6) {
         fprintf(stderr,
@@ -35,20 +50,22 @@ int main(int argc, char **argv) {
                         "item in set.\n");
         fprintf(stderr,
                 "\t* insertion parameter: control ratio of kmers inserted.\n");
+        return EXIT_FAILURE;
     }
 
     Text t = file_utils_read(argv[1]);
-    kmer_filter_t kmer_filter = {
-        .bloom = bf_create(atol(argv[4]), hash_funcs, HASH_FUNCTION_COUNT),
-        .kmer_size = atoi(argv[3]),
-        .filter_size = atol(argv[4]),
-        .five_to_pow_k = 1,
-        .insertion_hash = insertion_param_hash,
-        .insertion_param = atoi(argv[5])};
+    kmer_filter_t kmer_filter;
+    init_kmer_struct(&kmer_filter, atol(argv[4]), atoi(argv[3]), atoi(argv[5]));
+    kmerf_populate_result_t r = kmerf_populate(&kmer_filter, t);
+    int err = kmerf_save_file(&kmer_filter, argv[2]);
 
-    for (int i = 0; i < kmer_filter.kmer_size; i++) {
-        kmer_filter.five_to_pow_k *= 5;
+    if (err != EXIT_SUCCESS) {
+        fprintf(stderr, "Unable to write to file %s\n", argv[2]);
+        return EXIT_FAILURE;
     }
+
+    printf("Created a file %s where %zu bits set and %zu tuples inserted.\n",
+           argv[2], r.bits_set, r.kmers_inserted);
 
     return EXIT_SUCCESS;
 }
