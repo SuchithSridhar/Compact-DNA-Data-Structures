@@ -1,6 +1,7 @@
 #include "kmer_filter.h"
 #include "bloom_filter.h"
 #include <assert.h>
+#include <stdio.h>
 
 bool kmerf_should_contain(kmer_filter_t *kf, kmer_int_t kmer) {
     return bf_hash(&kf->insertion_hash, kmer) % kf->insertion_param == 0;
@@ -130,10 +131,11 @@ int kmerf_load_file(kmer_filter_t *kf, char *filename) {
     }
 
     size_t bytes_allocated;
-    fread(&bytes_allocated, sizeof(int8_t), 1, file);
+    fread(&bytes_allocated, sizeof(size_t), 1, file);
 
     kf->bloom = bf_create(kf->filter_size, hfs, hash_func_count);
 
+    printf("%ld %ld\n", bytes_allocated, kf->bloom->bv->bytes_allocated);
     assert(kf->bloom->bv->bytes_allocated == bytes_allocated);
 
     fread(kf->bloom->bv->bit_array, sizeof(int8_t), bytes_allocated, file);
@@ -167,11 +169,12 @@ int kmerf_save_file(kmer_filter_t *kf, char *filename) {
         fwrite(&kf->bloom->hash_functions[i].P, sizeof(size_t), 1, file);
     }
 
-    fwrite(&kf->bloom->bv->bytes_allocated, sizeof(int8_t), 1, file);
+    fwrite(&kf->bloom->bv->bytes_allocated, sizeof(size_t), 1, file);
     fwrite(kf->bloom->bv->bit_array, sizeof(int8_t),
            kf->bloom->bv->bytes_allocated, file);
 
     fclose(file);
 
+    printf("%ld %ld\n", kf->bloom->bv->bytes_allocated, kf->filter_size);
     return EXIT_SUCCESS;
 }
