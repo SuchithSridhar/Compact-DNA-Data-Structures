@@ -130,7 +130,7 @@ int kmerf_load_file(kmer_filter_t *kf, char *filename) {
     }
 
     size_t bytes_allocated;
-    fread(&bytes_allocated, sizeof(int8_t), 1, file);
+    fread(&bytes_allocated, sizeof(size_t), 1, file);
 
     kf->bloom = bf_create(kf->filter_size, hfs, hash_func_count);
 
@@ -167,7 +167,7 @@ int kmerf_save_file(kmer_filter_t *kf, char *filename) {
         fwrite(&kf->bloom->hash_functions[i].P, sizeof(size_t), 1, file);
     }
 
-    fwrite(&kf->bloom->bv->bytes_allocated, sizeof(int8_t), 1, file);
+    fwrite(&kf->bloom->bv->bytes_allocated, sizeof(size_t), 1, file);
     fwrite(kf->bloom->bv->bit_array, sizeof(int8_t),
            kf->bloom->bv->bytes_allocated, file);
 
