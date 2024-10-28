@@ -90,7 +90,7 @@ ssv_vector_t *find_substrings(Text pattern, kmer_filter_t *kmer_filter,
 
     if (pattern.len - start_substring >= min_mem_length) {
         range.start = start_substring;
-        range.end = end_substring;
+        range.end = pattern.len;
         ssv_push(range_vec, &range);
     }
 
