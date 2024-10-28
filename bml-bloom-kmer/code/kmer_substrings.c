@@ -1,4 +1,5 @@
 #include "file_utils.h"
+#include "string_utils.h"
 #include "kmer_filter.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -47,13 +48,6 @@ move_table_t *load_move_table(char *table_filename) {
     return table;
 }
 */
-
-void range_print_string(char *string, int start, int end) {
-    char tmp = string[end];
-    string[end] = '\0';
-    fprintf(stdout, "%s\n", &string[start]);
-    string[end] = tmp;
-}
 
 void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
                      int min_mem_length) {
