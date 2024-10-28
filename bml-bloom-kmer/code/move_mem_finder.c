@@ -1,12 +1,8 @@
+#include "string_utils.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "file_utils.h"
-#include "string_utils.h"
-
-//#define MAX_PATTERN_LENGTH 1000000
-//#define MIN_MEM_LENGTH 10
 
 #define FORWARD 1
 #define BACKWARD -1
@@ -127,9 +123,9 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
 
         if (steps_fw >= min_mem_len) {
             mem_count++;
-            printf("MEM (start=%lld, end=%lld, len=%lld): ", mem_start, mem_end,
-                   steps_fw);
-			range_print_string(pattern, mem_start, mem_end);
+            // printf("MEM (start=%ld, end=%ld, len=%ld): ", mem_start, mem_end,
+            // steps_fw);
+            range_print_string(pattern, mem_start, mem_end);
         }
 
         if (mem_end >= pattern_size) {
@@ -151,7 +147,9 @@ int main(int argc, char **argv) {
 
     if (argc != 5) {
         fprintf(stderr,
-                "\nUsage: %s <BWT file> <Reversed BWT file> <Pattern file> <Min Mem Len>\n",
+                "\nUsage: %s <move table file> <reversed move table file> "
+                "<Pattern file> "
+                "<Min Mem Len>\n",
                 argv[0]);
         fprintf(
             stderr,
@@ -162,60 +160,29 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-	int min_mem_len = atoi(argv[4]);
+    int min_mem_len = atoi(argv[4]);
 
     props p1 = read_mvt(argv[1]);
     props p2 = read_mvt(argv[2]);
 
-    // char *bwt_straight_filename = argv[1];
-    // char *bwt_reversed_filename = argv[2];
-    //
-    // Text bwt_straight = file_utils_read(bwt_straight_filename);
-    // Text bwt_reversed = file_utils_read(bwt_reversed_filename);
-    //
-    // if (bwt_straight.T == NULL || bwt_reversed.T == NULL) {
-    //     fprintf(stderr, "Unable to read bwt files.\n");
-    //     return EXIT_FAILURE;
-    // }
-    //
-    // printf("BUILDING STRAIGHT\n");
-    // move_table_t *mt_straight =
-    //     move_table_create(bwt_straight.T, bwt_straight.len);
-    // printf("BUILDING REVERSED\n");
-    // move_table_t *mt_reversed =
-    //     move_table_create(bwt_reversed.T, bwt_reversed.len);
-    // printf("DONE\n");
+    char *pattern;
 
-    
-	//char *pattern = malloc(MAX_PATTERN_LENGTH * sizeof(char));
-	char* pattern;
-
-
-    // size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH,
-    // stdin); if (read_len == 0) {
-    //     fprintf(stderr, "No pattern data read from stdin\n");
-    //     free(pattern);
-    //     return EXIT_FAILURE;
-    // }
     FILE *pattern_file = fopen(argv[3], "r");
     size_t pattern_len = 0;
     uint8_t pattern_count = 0;
 
     while (getline(&pattern, &pattern_len, pattern_file) != -1) {
 
-		pattern_count++;
+        pattern_count++;
         printf("MEMs for Pattern %d\n", pattern_count);
         printf("============================================\n");
-        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, pattern_len, min_mem_len);
+        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, pattern_len,
+                  min_mem_len);
         printf("\n");
 
-		free(pattern);
-		pattern = NULL;
+        free(pattern);
+        pattern = NULL;
     }
-
-    // find_mems(p1.table, p1.r, p2.table, p2.r, pattern, read_len);
-
-    //free(pattern);
 
     return EXIT_SUCCESS;
 }
