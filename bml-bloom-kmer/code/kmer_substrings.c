@@ -77,15 +77,21 @@ ssv_vector_t *find_substrings(Text pattern, kmer_filter_t *kmer_filter,
         kmer_int_t kmer = kmerf_as_int(kf, pattern.T, i);
         if (kmerf_should_contain(kf, kmer) && !kmerf_query(kf, kmer)) {
             // a kmer not found in bloom filter
-            end_substring = i + kf->kmer_size - 1;
+            end_substring = i + kf->kmer_size;
             if (end_substring - start_substring >= min_mem_length) {
                 range.start = start_substring;
                 range.end = end_substring;
                 ssv_push(range_vec, &range);
             }
 
-            start_substring = end_substring + 1;
+            start_substring = i + 1;
         }
+    }
+
+    if (pattern.len - start_substring >= min_mem_length) {
+        range.start = start_substring;
+        range.end = end_substring;
+        ssv_push(range_vec, &range);
     }
 
     return range_vec;
