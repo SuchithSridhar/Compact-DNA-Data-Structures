@@ -1,6 +1,5 @@
 #include "file_utils.h"
 #include "kmer_filter.h"
-#include "ssvector.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,26 +48,16 @@ move_table_t *load_move_table(char *table_filename) {
 }
 */
 
-typedef struct range {
-    int start;
-    int end;
-} range_t;
-
-void range_array_print(char *pattern, range_t *range_array, size_t length) {
-    for (size_t i = 0; i < length; i++) {
-        char tmp = pattern[range_array[i].end];
-        pattern[range_array[i].end] = '\0';
-        fprintf(stdout, "%s\n", &pattern[range_array[i].start]);
-        pattern[range_array[i].end] = tmp;
-    }
+void range_print_string(char *string, int start, int end) {
+    char tmp = string[end];
+    string[end] = '\0';
+    fprintf(stdout, "%s\n", &string[start]);
+    string[end] = tmp;
 }
 
-ssv_vector_t *find_substrings(Text pattern, kmer_filter_t *kmer_filter,
-                              int min_mem_length) {
+void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
+                     int min_mem_length) {
     kmer_filter_t *kf = kmer_filter;
-    int init_size = 1024;
-    ssv_vector_t *range_vec = ssv_init(sizeof(range_t), init_size);
-    range_t range;
 
     size_t start_substring = 0;
     size_t end_substring = 0;
@@ -79,9 +68,7 @@ ssv_vector_t *find_substrings(Text pattern, kmer_filter_t *kmer_filter,
             // a kmer not found in bloom filter
             end_substring = i + kf->kmer_size;
             if (end_substring - start_substring >= min_mem_length) {
-                range.start = start_substring;
-                range.end = end_substring;
-                ssv_push(range_vec, &range);
+                range_print_string(pattern.T, start_substring, end_substring);
             }
 
             start_substring = i + 1;
@@ -89,12 +76,8 @@ ssv_vector_t *find_substrings(Text pattern, kmer_filter_t *kmer_filter,
     }
 
     if (pattern.len - start_substring >= min_mem_length) {
-        range.start = start_substring;
-        range.end = pattern.len;
-        ssv_push(range_vec, &range);
+        range_print_string(pattern.T, start_substring, end_substring);
     }
-
-    return range_vec;
 }
 
 int main(int argc, char *argv[]) {
@@ -115,9 +98,7 @@ int main(int argc, char *argv[]) {
     int min_mem_length = atoi(min_mem_len_str);
     kmerf_load_file(&kmer_filter, kmer_filter_file);
 
-    ssv_vector_t *range_vec =
-        find_substrings(pattern, &kmer_filter, min_mem_length);
-    range_array_print(pattern.T, range_vec->array, range_vec->size);
+    find_substrings(pattern, &kmer_filter, min_mem_length);
 
     return EXIT_SUCCESS;
 }
