@@ -76,7 +76,7 @@ void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
     }
 
     if (pattern.len - start_substring >= min_mem_length) {
-        range_print_string(pattern.T, start_substring, end_substring);
+        range_print_string(pattern.T, start_substring, pattern.len);
     }
 }
 
