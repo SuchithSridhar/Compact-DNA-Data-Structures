@@ -140,6 +140,11 @@ int kmerf_load_file(kmer_filter_t *kf, char *filename) {
 
     fclose(file);
 
+    kf->_five_to_pow_km1 = 1;
+    for (int i = 0; i < kf->kmer_size - 1; i++) {
+        kf->_five_to_pow_km1 *= 5;
+    }
+
     return EXIT_SUCCESS;
 }
 
