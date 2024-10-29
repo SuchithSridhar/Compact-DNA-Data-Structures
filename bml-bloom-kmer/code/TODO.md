@@ -31,10 +31,11 @@
 - [ ] Change MEM finding to use BML rather than forward-backward. Right now we
       use forward-backward. Double check results against known MEMs again. Allow
       the user to select whether they want to use BML for forward-backward.
+      (`hamza`, `anas`)
 
 - [ ] Allow use to select if they want to use a filter. Make it like a normal
       CLI tool, refer to `man grep` and write a help doc simliar to the 
-      `man grep` listing.
+      `man grep` listing. (`suchi`)
 
 ## LOW
 
