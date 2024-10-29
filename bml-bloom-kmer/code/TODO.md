@@ -11,16 +11,17 @@
       first and then a shorter string then it prints duplicate mems from the larger
       string as mems in the shorter string. Eg: If I give pattern of length 100 and
       then pattern of length 10 then it prints mems from pattern of 10 and pattern of
-      20 to 100.
+      20 to 100. (`nour`)
 
 - [ ] Integrate MEM finding and substring finding into one program so that we
       don't print the substrings, we just find the mems directly in the
       substring. You can in fact, just call `findMem` once you have a substring.
+      (`hamza`)
 
 - [ ] Write a script to automatically search though `k` values and `insparams`
       values and build a tables with the results. Ensure that the mems found
       match a source of truth everytime an experiment is run. Find good ways to
-      measure the time taken for each of those.
+      measure the time taken for each of those. (`anas`)
 
 ## MEDIUM
 
