@@ -7,7 +7,7 @@
       Calculating raw each time works: Bug was because the `_five_to_pow_km1` was
       not initialized when calling `kmerf_load_file`.
 
-- [ ] BUG: Fix problem in `move_mem_finder` where if you give it large string
+- [x] BUG: Fix problem in `move_mem_finder` where if you give it large string
       first and then a shorter string then it prints duplicate mems from the larger
       string as mems in the shorter string. Eg: If I give pattern of length 100 and
       then pattern of length 10 then it prints mems from pattern of 10 and pattern of

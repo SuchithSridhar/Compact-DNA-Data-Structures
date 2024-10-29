@@ -181,11 +181,11 @@ int main(int argc, char **argv) {
     //     move_table_create(bwt_reversed.T, bwt_reversed.len);
     // printf("DONE\n");
 
-    char *pattern = malloc(MAX_PATTERN_LENGTH * sizeof(char));
-    if (!pattern) {
-        fprintf(stderr, "Failed to allocate memory for pattern\n");
-        return EXIT_FAILURE;
-    }
+    // char *pattern = malloc(MAX_PATTERN_LENGTH * sizeof(char));
+    // if (!pattern) {
+    //     fprintf(stderr, "Failed to allocate memory for pattern\n");
+    //     return EXIT_FAILURE;
+    // }
 
     // size_t read_len = fread(pattern, sizeof(char), MAX_PATTERN_LENGTH,
     // stdin); if (read_len == 0) {
@@ -194,20 +194,25 @@ int main(int argc, char **argv) {
     //     return EXIT_FAILURE;
     // }
     FILE *pattern_file = fopen(argv[3], "r");
-    size_t pattern_len = 0;
+    
+    char * pattern = NULL;
+    size_t len_allocated = 0;
+    ssize_t characters_read;
     uint8_t pattern_count = 0;
 
-    while (getline(&pattern, &pattern_len, pattern_file) != -1) {
+    while ((characters_read = getline(&pattern, &len_allocated, pattern_file)) != -1) {
         pattern_count++;
+        // Get the actual length of the line content
         printf("MEMs for Pattern %d\n", pattern_count);
         printf("============================================\n");
-        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, pattern_len);
+        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, characters_read);
         printf("\n");
     }
 
     // find_mems(p1.table, p1.r, p2.table, p2.r, pattern, read_len);
 
-    free(pattern);
+    if(pattern)
+        free(pattern);
 
     return EXIT_SUCCESS;
 }
