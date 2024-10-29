@@ -3,9 +3,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define FORWARD 1
 #define BACKWARD -1
+#define MILLISECOND_SCALE 1000
+
+//shouldnt use global but this is just a make shift solution to avoid having to change
+//func signatures for now, will only be used to cound backward steps in find_mem()
+int backward_steps_call = 0;
+int backward_steps = 0;
 
 #define SLTEE(s_run, s_offset, e_run, e_offset)                                \
     ((s_run) < (e_run) || ((s_run) == (e_run) && (s_offset) <= (e_offset)))
@@ -135,6 +142,9 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
         int64_t steps_bw =
             forward_backward(mt_straight, mt_straight_length, mem_end, pattern,
                              pattern_size, BACKWARD);
+		backward_steps+= steps_bw;
+		backward_steps_call ++;
+
         int64_t new_mem_start = mem_end - steps_bw + 1;
 
         mem_start = new_mem_start;
@@ -171,15 +181,25 @@ int main(int argc, char **argv) {
     ssize_t pat_length;
     uint8_t pat_count = 0;
 
+	double total_clock_time = 0;
+
     while ((pat_length = getline(&pat, &len_allocated, pat_file)) != -1) {
 
         pat_count++;
         printf("MEMs for Pattern %d\n", pat_count);
         printf("============================================\n");
-        find_mems(p1.table, p1.r, p2.table, p2.r, pat, pat_length, min_mem_len);
-        printf("\n");
+		
+		clock_t start = clock();
+		find_mems(p1.table, p1.r, p2.table, p2.r, pat, pat_length, min_mem_len);
+		clock_t end = clock();
+	
+		total_clock_time += (double)(end-start);
+
+		printf("\n");
     }
 
+	printf("Time taken to find all mems: %lf ms\n", total_clock_time/CLOCKS_PER_SEC * MILLISECOND_SCALE);
+	printf("Number of backward steps: %d\n", backward_steps);
     if (pat)
         free(pat);
 
