@@ -165,24 +165,23 @@ int main(int argc, char **argv) {
     props p1 = read_mvt(argv[1]);
     props p2 = read_mvt(argv[2]);
 
-    char *pattern;
+    FILE *pat_file = fopen(argv[3], "r");
+    char *pat = NULL;
+    size_t len_allocated = 0;
+    ssize_t pat_length;
+    uint8_t pat_count = 0;
 
-    FILE *pattern_file = fopen(argv[3], "r");
-    size_t pattern_len = 0;
-    uint8_t pattern_count = 0;
+    while ((pat_length = getline(&pat, &len_allocated, pat_file)) != -1) {
 
-    while (getline(&pattern, &pattern_len, pattern_file) != -1) {
-
-        pattern_count++;
-        printf("MEMs for Pattern %d\n", pattern_count);
+        pat_count++;
+        printf("MEMs for Pattern %d\n", pat_count);
         printf("============================================\n");
-        find_mems(p1.table, p1.r, p2.table, p2.r, pattern, pattern_len,
-                  min_mem_len);
+        find_mems(p1.table, p1.r, p2.table, p2.r, pat, pat_length, min_mem_len);
         printf("\n");
-
-        free(pattern);
-        pattern = NULL;
     }
+
+    if (pat)
+        free(pat);
 
     return EXIT_SUCCESS;
 }
