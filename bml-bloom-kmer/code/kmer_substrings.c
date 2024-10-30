@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_PATTERN_LENGTH 1000000
 #define MIN_MEM_LENGTH 10
@@ -18,13 +19,9 @@
 /**
  * @brief Loads a move table from a binary move table file
  *
- * Detailed description of the function, explaining its purpose,
- * how it works, and any important notes.
- *
- * @param[in] move table filename
+ * @param[in] filename name of the binary move table file
  * @return A move table
  *
- * @warning Any warnings or potential issues to be aware of.
  */
 move_table_t read_mvt(char *filename) {
     FILE *move = fopen(filename, "rb");
@@ -53,10 +50,22 @@ move_table_t read_mvt(char *filename) {
     return (move_table_t){.table = table, .r = r, .n = n};
 }
 
-// direction = 1 -> right (forward)
-// direction = -1 -> left (backward)
-// I'm going to assume you gave me the right fm index
-// returns the steps I was able to walk
+/**
+ * @brief Finds the MEMs for a given pattern using the forward backwards
+ * algorithm
+ *
+ *
+ * @param[in] mtb move table
+ * @param[in] mt_length number of rows in the move table
+ * @param[in] start
+ * @param[in] pattern
+ * @param[in] pattern_size length of the pattern
+ * @param[in] direction If +1, we step forwards in the pattern, and if -1, we
+ *            step backwards
+ *
+ * @return A move table
+ *
+ */
 int forward_backward(row_t *mtb, int mt_length, int64_t start, char *pattern,
                      size_t pattern_size, int8_t direction) {
 
@@ -109,7 +118,16 @@ int forward_backward(row_t *mtb, int mt_length, int64_t start, char *pattern,
 }
 
 /**
- * Find maximal exact matches (MEMs) for a given pattern within a text.
+ * @brief Find maximal exact matches (MEMs) for a given pattern within a text.
+ *
+ * @param[in] mt_straight move table of the original text
+ * @param[in] mt_straight_length length of the move table of the original text
+ * @param[in] mt_reversed move table of the reversed text
+ * @param[in] mt_reversed_length length of the move table of the reversed text
+ * @param[in] pattern
+ * @param[in] pattern_size length of the pattern
+ * @return the number of MEMs found for the given pattern
+ *
  */
 int find_mems(row_t *mt_straight, int mt_straight_length, row_t *mt_reversed,
               int mt_reversed_length, char *pattern, size_t pattern_size) {
@@ -139,14 +157,29 @@ int find_mems(row_t *mt_straight, int mt_straight_length, row_t *mt_reversed,
         int64_t new_mem_start = mem_end - steps_bw + 1;
 
         mem_start = new_mem_start;
+        printf("%lld %lld\n", mem_start, mem_end);
     }
 
     return mem_count;
 }
 
-void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
-                     int min_mem_length, row_t *mvt_straight,
-                     row_t *mvt_reversed) {
+/**
+ * @brief Finds the Maximal Exact Matches (MEMs) of a text given a pattern using
+ * a kmer bloom filter.
+ *
+ * Finds maximal substrings of the pattern that occurs in the text and finds the
+ * MEMs in each of the substrings.
+ *
+ * @param[in] pattern the pattern used to match again the text
+ * @param[in] kmer_filter the kmer filter
+ * @param[in] min_mem_length minimum length of the MEMs to be found
+ * @param[in] mvt_straight move table of the original text
+ * @param[in] mvt_reversed move table of the reversed text
+ *
+ */
+void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
+                    int min_mem_length, row_t *mvt_straight,
+                    row_t *mvt_reversed) {
     kmer_filter_t *kf = kmer_filter;
 
     size_t start_substring = 0;
@@ -158,7 +191,11 @@ void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
             // a kmer not found in bloom filter
             end_substring = i + kf->kmer_size;
             if (end_substring - start_substring >= min_mem_length) {
-                range_print_string(pattern.T, start_substring, end_substring);
+                char *substring =
+                    get_substring(pattern.T, start_substring, end_substring);
+                find_mems(mvt_straight, mvt_straight->length, mvt_reversed,
+                          mvt_reversed->length, substring, strlen(substring));
+                free(substring);
             }
 
             start_substring = i + 1;
@@ -166,12 +203,16 @@ void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
     }
 
     if (pattern.len - start_substring >= min_mem_length) {
-        range_print_string(pattern.T, start_substring, pattern.len);
+        char *substring =
+            get_substring(pattern.T, start_substring, end_substring);
+        find_mems(mvt_straight, mvt_straight->length, mvt_reversed,
+                  mvt_reversed->length, substring, strlen(substring));
+        free(substring);
     }
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 5) {
+    if (argc != 6) {
         fprintf(stderr,
                 "usage: %s <pattern file> <move table file> <reversed move "
                 "table file> [kmer filter file] "
@@ -181,8 +222,8 @@ int main(int argc, char *argv[]) {
     }
 
     char *pattern_file = argv[1];
-    char *kmer_filter_file = argv[2];
-    char *min_mem_len_str = argv[3];
+    char *kmer_filter_file = argv[4];
+    char *min_mem_len_str = argv[5];
 
     move_table_t table_straight = read_mvt(argv[2]);
     move_table_t table_reversed = read_mvt(argv[3]);
@@ -192,8 +233,8 @@ int main(int argc, char *argv[]) {
     int min_mem_length = atoi(min_mem_len_str);
     kmerf_load_file(&kmer_filter, kmer_filter_file);
 
-    find_substrings(pattern, &kmer_filter, min_mem_length, table_straight.table,
-                    table_reversed.table);
+    find_kmer_mems(pattern, &kmer_filter, min_mem_length, table_straight.table,
+                   table_reversed.table);
 
     return EXIT_SUCCESS;
 }
