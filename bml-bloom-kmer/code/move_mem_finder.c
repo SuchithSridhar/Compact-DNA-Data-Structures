@@ -1,3 +1,4 @@
+#include "kmer_filter.h"
 #include "string_utils.h"
 #include <assert.h>
 #include <stdint.h>
@@ -9,8 +10,9 @@
 #define BACKWARD -1
 #define MILLISECOND_SCALE 1000
 
-//shouldnt use global but this is just a make shift solution to avoid having to change
-//func signatures for now, will only be used to cound backward steps in find_mem()
+// shouldnt use global but this is just a make shift solution to avoid having to
+// change func signatures for now, will only be used to cound backward steps in
+// find_mem()
 int backward_steps_call = 0;
 int backward_steps = 0;
 
@@ -142,8 +144,8 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
         int64_t steps_bw =
             forward_backward(mt_straight, mt_straight_length, mem_end, pattern,
                              pattern_size, BACKWARD);
-		backward_steps+= steps_bw;
-		backward_steps_call ++;
+        backward_steps += steps_bw;
+        backward_steps_call++;
 
         int64_t new_mem_start = mem_end - steps_bw + 1;
 
@@ -153,11 +155,43 @@ int find_mems(move_table_t *mt_straight, int mt_straight_length,
     return mem_count;
 }
 
+void find_substrings(move_table_t *mt_straight, int mt_straight_length,
+                     move_table_t *mt_reversed, int mt_reversed_length,
+                     kmer_filter_t *kmer_filter, char *pattern, int pat_len,
+                     int min_mem_len) {
+    kmer_filter_t *kf = kmer_filter;
+
+    size_t start_substring = 0;
+    size_t end_substring = 0;
+
+    for (size_t i = 0; i < pat_len - kf->kmer_size; i++) {
+        kmer_int_t kmer = kmerf_as_int(kf, pattern, i);
+        if (kmerf_should_contain(kf, kmer) && !kmerf_query(kf, kmer)) {
+            // a kmer not found in bloom filter
+            end_substring = i + kf->kmer_size;
+            if (end_substring - start_substring >= min_mem_len) {
+                find_mems(mt_straight, mt_straight_length, mt_reversed,
+                          mt_reversed_length, pattern + start_substring,
+                          end_substring - start_substring, min_mem_len);
+            }
+
+            start_substring = i + 1;
+        }
+    }
+
+    if (pat_len - start_substring >= min_mem_len) {
+        find_mems(mt_straight, mt_straight_length, mt_reversed,
+                  mt_reversed_length, pattern + start_substring,
+                  pat_len - start_substring, min_mem_len);
+    }
+}
+
 int main(int argc, char **argv) {
 
-    if (argc != 5) {
+    if (argc != 6) {
         fprintf(stderr,
                 "\nUsage: %s <move table file> <reversed move table file> "
+                "\n<kmer filter file> "
                 "<Pattern file> "
                 "<Min Mem Len>\n",
                 argv[0]);
@@ -170,36 +204,42 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    int min_mem_len = atoi(argv[4]);
+    int min_mem_len = atoi(argv[5]);
 
     props p1 = read_mvt(argv[1]);
     props p2 = read_mvt(argv[2]);
 
-    FILE *pat_file = fopen(argv[3], "r");
+    FILE *pat_file = fopen(argv[4], "r");
     char *pat = NULL;
     size_t len_allocated = 0;
     ssize_t pat_length;
     uint8_t pat_count = 0;
 
-	double total_clock_time = 0;
+    char *kmer_filter_file = argv[3];
+    kmer_filter_t kmer_filter;
+    kmerf_load_file(&kmer_filter, kmer_filter_file);
+
+    double total_clock_time = 0;
 
     while ((pat_length = getline(&pat, &len_allocated, pat_file)) != -1) {
 
         pat_count++;
         printf("MEMs for Pattern %d\n", pat_count);
         printf("============================================\n");
-		
-		clock_t start = clock();
-		find_mems(p1.table, p1.r, p2.table, p2.r, pat, pat_length, min_mem_len);
-		clock_t end = clock();
-	
-		total_clock_time += (double)(end-start);
 
-		printf("\n");
+        clock_t start = clock();
+        find_substrings(p1.table, p1.r, p2.table, p2.r, &kmer_filter, pat,
+                        pat_length, min_mem_len);
+        clock_t end = clock();
+
+        total_clock_time += (double)(end - start);
+
+        printf("\n");
     }
 
-	printf("Time taken to find all mems: %lf ms\n", total_clock_time/CLOCKS_PER_SEC * MILLISECOND_SCALE);
-	printf("Number of backward steps: %d\n", backward_steps);
+    printf("Time taken to find all mems: %lf ms\n",
+           total_clock_time / CLOCKS_PER_SEC * MILLISECOND_SCALE);
+    printf("Number of backward steps: %d\n", backward_steps);
     if (pat)
         free(pat);
 

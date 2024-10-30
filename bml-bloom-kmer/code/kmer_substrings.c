@@ -1,7 +1,6 @@
 #include "file_utils.h"
 #include "kmer_filter.h"
 #include "kmer_mems.h"
-#include "string_utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +16,7 @@
     ((s_run) < (e_run) || ((s_run) == (e_run) && (s_offset) <= (e_offset)))
 
 /**
- * @brief Loads a move table from a binary move table file
+ * @brief Creates a move table from a binary move table file
  *
  * @param[in] filename name of the binary move table file
  * @return A move table
