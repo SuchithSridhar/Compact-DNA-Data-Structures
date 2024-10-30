@@ -1,53 +1,9 @@
 #include "file_utils.h"
-#include "string_utils.h"
 #include "kmer_filter.h"
+#include "string_utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-/**
-// TODO: Move to this to use suchi's move table
-typedef struct {
-    char head;
-    unsigned char length;
-    int pointer;
-    unsigned char offset;
-} row_t;
-
-typedef struct {
-    row_t *table;
-    int n;
-    int r;
-} move_table_t;
-*/
-
-/**
-move_table_t *load_move_table(char *table_filename) {
-    FILE *file = fopen(table_filename, "rb");
-
-    if (file == NULL) {
-        return NULL;
-    }
-
-    move_table_t *table = malloc(sizeof(move_table_t));
-
-    fread(&table->n, sizeof(int), 1, file);
-    fread(&table->r, sizeof(int), 1, file);
-
-    table->table = malloc(sizeof(row_t) * table->r);
-
-    for (int i = 0; i < table->r; i++) {
-        fread(&table->table[i].head, sizeof(int8_t), 1, file);
-        fread(&table->table[i].length, sizeof(int8_t), 1, file);
-        fread(&table->table[i].pointer, sizeof(int32_t), 1, file);
-        fread(&table->table[i].offset, sizeof(int8_t), 1, file);
-    }
-
-    fclose(file);
-
-    return table;
-}
-*/
 
 void find_substrings(Text pattern, kmer_filter_t *kmer_filter,
                      int min_mem_length) {

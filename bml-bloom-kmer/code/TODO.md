@@ -13,7 +13,7 @@
       then pattern of length 10 then it prints mems from pattern of 10 and pattern of
       20 to 100. (`nour`)
 
-- [ ] Integrate MEM finding and substring finding into one program so that we
+- [x] Integrate MEM finding and substring finding into one program so that we
       don't print the substrings, we just find the mems directly in the
       substring. You can in fact, just call `findMem` once you have a substring.
       (`hamza`)
@@ -35,9 +35,11 @@
       (`hamza`, `anas`)
 
 - [ ] Allow use to select if they want to use a filter. Make it like a normal
-      CLI tool, refer to `man grep` and write a help doc simliar to the 
+      CLI tool, refer to `man grep` and write a help doc simliar to the
       `man grep` listing. (`suchi`)
 
 ## LOW
 
 - [ ] write code to build move table, adapt `suchi-move-table`
+
+- [ ] Move source files to src directory
