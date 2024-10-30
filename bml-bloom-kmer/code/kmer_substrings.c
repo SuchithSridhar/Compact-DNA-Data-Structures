@@ -157,7 +157,6 @@ int find_mems(row_t *mt_straight, int mt_straight_length, row_t *mt_reversed,
         int64_t new_mem_start = mem_end - steps_bw + 1;
 
         mem_start = new_mem_start;
-        printf("%lld %lld\n", mem_start, mem_end);
     }
 
     return mem_count;
@@ -178,8 +177,8 @@ int find_mems(row_t *mt_straight, int mt_straight_length, row_t *mt_reversed,
  *
  */
 void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
-                    int min_mem_length, row_t *mvt_straight,
-                    row_t *mvt_reversed) {
+                    int min_mem_length, move_table_t *mvt_straight,
+                    move_table_t *mvt_reversed) {
     kmer_filter_t *kf = kmer_filter;
 
     size_t start_substring = 0;
@@ -193,8 +192,9 @@ void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
             if (end_substring - start_substring >= min_mem_length) {
                 char *substring =
                     get_substring(pattern.T, start_substring, end_substring);
-                find_mems(mvt_straight, mvt_straight->length, mvt_reversed,
-                          mvt_reversed->length, substring, strlen(substring));
+                find_mems(mvt_straight->table, mvt_straight->r,
+                          mvt_reversed->table, mvt_reversed->r, substring,
+                          strlen(substring));
                 free(substring);
             }
 
@@ -205,8 +205,8 @@ void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
     if (pattern.len - start_substring >= min_mem_length) {
         char *substring =
             get_substring(pattern.T, start_substring, end_substring);
-        find_mems(mvt_straight, mvt_straight->length, mvt_reversed,
-                  mvt_reversed->length, substring, strlen(substring));
+        find_mems(mvt_straight->table, mvt_straight->r, mvt_reversed->table,
+                  mvt_reversed->r, substring, strlen(substring));
         free(substring);
     }
 }
@@ -233,8 +233,8 @@ int main(int argc, char *argv[]) {
     int min_mem_length = atoi(min_mem_len_str);
     kmerf_load_file(&kmer_filter, kmer_filter_file);
 
-    find_kmer_mems(pattern, &kmer_filter, min_mem_length, table_straight.table,
-                   table_reversed.table);
+    find_kmer_mems(pattern, &kmer_filter, min_mem_length, &table_straight,
+                   &table_reversed);
 
     return EXIT_SUCCESS;
 }
