@@ -27,7 +27,7 @@
 
 - [ ] print ratios of things when building kmer-bloom-filter. Things like bits
       set to total bits, and total possible kmers (use appox of `4^k` not `5^k`)
-      to kmers inserted.
+      to kmers inserted. (`nour`)
 
 - [ ] Change MEM finding to use BML rather than forward-backward. Right now we
       use forward-backward. Double check results against known MEMs again. Allow
@@ -40,4 +40,4 @@
 
 ## LOW
 
-- [ ] write code to build move table, adapt `suchi-move-table`
+- [ ] write code to build move table, adapt `suchi-move-table` (`nour`)
