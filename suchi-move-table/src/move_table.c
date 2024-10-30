@@ -239,12 +239,53 @@ void move_table_print(move_table_t *mt) {
     }
 }
 
-void move_table_store(move_table_t *mt, char *filename) {
+void move_table_store(move_table_t *mt, char *filename, size_t bwt_len) {
+    FILE *file = fopen(filename, "wb");
+	rewind(file);
+
+	fwrite(&bwt_len, sizeof(size_t), 1, file);
+	fwrite(&mt->length, sizeof(size_t), 1, file);
+
+	for (int i = 0; i < mt->length; i++) {
+
+		fwrite(&mt->table[i].head, 1, 1, file);
+		fwrite(&mt->table[i].length, 1, 1, file);
+		fwrite(&mt->table[i].ptr, sizeof(uint32_t), 1, file);
+		fwrite(&mt->table[i].offset, 1, 1, file);
+	}
+    
+    fclose(file);
     return;
 }
 
 move_table_t *move_table_load(char *filename) {
-    return NULL;
+    FILE *file = fopen(filename, "rb");
+	rewind(file);
+
+    size_t bwt_len;
+    size_t num_runs;
+
+	fread(&bwt_len, sizeof(size_t), 1, file);
+	fprintf(stderr, "read n = %i\n", bwt_len);
+
+	fread(&num_runs, sizeof(size_t), 1, file);
+	fprintf(stderr, "read r = %i\n", num_runs);
+
+    move_table_t *mt = malloc(sizeof(move_table_t));
+    mt->table = malloc(sizeof(move_table_row_t) * num_runs);
+    mt->length = num_runs;
+
+	for (int i = 0; i < num_runs; i++) {
+
+        fwrite(&mt->table[i].head, 1, 1, file);
+		fwrite(&mt->table[i].length, 1, 1, file);
+		fwrite(&mt->table[i].ptr, sizeof(uint32_t), 1, file);
+		fwrite(&mt->table[i].offset, 1, 1, file);
+	}
+
+	fprintf(stderr, "read table\n");
+
+	fclose(file);
 }
 
 void move_table_destroy(move_table_t *mt) {

@@ -20,7 +20,7 @@ typedef struct {
 move_table_t *move_table_create(char *bwt, size_t len);
 void move_table_print(move_table_t *mt);
 
-void move_table_store(move_table_t *mt, char *filename);
+void move_table_store(move_table_t *mt, char *filename, size_t bwt_len);
 move_table_t *move_table_load(char *filename);
 
 void move_table_destroy(move_table_t *move_table);

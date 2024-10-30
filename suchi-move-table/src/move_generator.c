@@ -21,6 +21,10 @@ int main(int argc, char **argv) {
     }
 
     move_table_t *move_table = move_table_create(bwt.T, bwt.len);
+    
+    size_t bwt_len = bwt.len;
+    move_table_store(move_table, "experimental.mvt", bwt_len);
+    move_table_load("experimental.mvt");
 
     move_table_print(move_table);
 

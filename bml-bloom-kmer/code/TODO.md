@@ -40,4 +40,4 @@
 
 ## LOW
 
-- [ ] write code to build move table, adapt `suchi-move-table` (`nour`)
+- [ ] write code to build move table, adapt `suchi-move-table`
