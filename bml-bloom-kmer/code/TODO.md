@@ -18,7 +18,7 @@
       substring. You can in fact, just call `findMem` once you have a substring.
       (`hamza`)
 
-- [ ] Write a script to automatically search though `k` values and `insparams`
+- [x] Write a script to automatically search though `k` values and `insparams`
       values and build a tables with the results. Ensure that the mems found
       match a source of truth everytime an experiment is run. Find good ways to
       measure the time taken for each of those. (`anas`)
