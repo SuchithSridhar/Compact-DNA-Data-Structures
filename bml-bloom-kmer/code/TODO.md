@@ -35,9 +35,11 @@
       (`hamza`, `anas`)
 
 - [ ] Allow use to select if they want to use a filter. Make it like a normal
-      CLI tool, refer to `man grep` and write a help doc simliar to the 
+      CLI tool, refer to `man grep` and write a help doc simliar to the
       `man grep` listing. (`suchi`)
 
 ## LOW
 
 - [ ] write code to build move table, adapt `suchi-move-table`
+
+- [ ] Move source files to src directory
