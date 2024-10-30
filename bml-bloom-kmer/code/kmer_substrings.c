@@ -130,12 +130,13 @@ int forward_backward(row_t *mtb, int mt_length, int64_t start, char *pattern,
  *
  */
 int find_mems(row_t *mt_straight, int mt_straight_length, row_t *mt_reversed,
-              int mt_reversed_length, char *pattern, size_t pattern_size) {
-    int64_t mem_start = 0;
-    int64_t mem_end = 0;
+              int mt_reversed_length, char *pattern, size_t pattern_size,
+              size_t start, size_t end) {
+    int64_t mem_start = start;
+    int64_t mem_end = start;
     int64_t mem_count = 0;
 
-    while (mem_end <= pattern_size - 1) {
+    while (mem_end <= end - 1) {
         int64_t steps_fw =
             forward_backward(mt_reversed, mt_reversed_length, mem_start,
                              pattern, pattern_size, FORWARD);
@@ -190,12 +191,9 @@ void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
             // a kmer not found in bloom filter
             end_substring = i + kf->kmer_size;
             if (end_substring - start_substring >= min_mem_length) {
-                char *substring =
-                    get_substring(pattern.T, start_substring, end_substring);
                 find_mems(mvt_straight->table, mvt_straight->r,
-                          mvt_reversed->table, mvt_reversed->r, substring,
-                          strlen(substring));
-                free(substring);
+                          mvt_reversed->table, mvt_reversed->r, pattern.T,
+                          pattern.len, start_substring, end_substring);
             }
 
             start_substring = i + 1;
@@ -203,11 +201,9 @@ void find_kmer_mems(Text pattern, kmer_filter_t *kmer_filter,
     }
 
     if (pattern.len - start_substring >= min_mem_length) {
-        char *substring =
-            get_substring(pattern.T, start_substring, end_substring);
         find_mems(mvt_straight->table, mvt_straight->r, mvt_reversed->table,
-                  mvt_reversed->r, substring, strlen(substring));
-        free(substring);
+                  mvt_reversed->r, pattern.T, pattern.len, start_substring,
+                  end_substring);
     }
 }
 

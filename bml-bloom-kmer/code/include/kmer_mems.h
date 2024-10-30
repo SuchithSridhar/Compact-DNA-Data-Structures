@@ -18,7 +18,7 @@ typedef struct move_table {
 
 move_table_t read_mvt(char *);
 int forward_backward(row_t *, int, int64_t, char *, size_t, int8_t);
-int find_mems(row_t *, int, row_t *, int, char *, size_t);
+int find_mems(row_t *, int, row_t *, int, char *, size_t, size_t, size_t);
 void find_substrings(Text, kmer_filter_t *, int, row_t *, row_t *);
 
 #endif // !KMER_MEM
