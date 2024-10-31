@@ -27,10 +27,6 @@ def read_csv(filename: str):
             filter.append(int(row['filter']))
             # Handle empty values for mem_size while keeping the type as int
             mem_size.append(int(row['mem_size']) if row['mem_size'] else 0)  # Default to 0 for empty cells
-            # Append the time, converting it to float
-            time.append(float(row['time']) if row['time'] else 0.0)  # Default to 0.0 for empty cells
-
-
 
 # Usage
 read_csv('data/input_data.csv')
@@ -43,7 +39,7 @@ print("mem_size:", mem_size)
 print("time:", time)  # Print the global time variable
 
 
-patterns:list[str] = ["pattern.txt"]
+patterns:list[str] = ["single_pattern.txt"]
 
 
 def get_mems_info(output: str) -> tuple[str | None, str | None]:

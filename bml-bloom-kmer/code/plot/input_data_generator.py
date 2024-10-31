@@ -2,17 +2,13 @@ import csv
 import random
 
 # Define your parameters
-k_values = [20]
-insPar_values = [10]  # Possible values for insPar to vary
-filter_values = [10000, 50000, 100000, 500000, 1000000]  # filter size
-time_value = 1.0  # placeholder for time taken
-
-# Create mem_size values that are >= k (incrementing by 5 or 10)
-mem_size_values = [5, 10, 15, 20]  # Unique mem_size values
+k_values = [5, 10, 15, 20]
+insPar_values = [1, 2, 3, 4, 5, 6, 7, 8, 9 , 10] 
+filter_values = [10000, 50000, 100000, 500000, 1000000] 
+mem_size_values = [5, 10, 15, 20] 
 
 # Create data for the CSV
 data = []
-
 for k in k_values:
     for mem in mem_size_values:
         if mem >= k:
@@ -23,13 +19,12 @@ for k in k_values:
                         'insPar': insPar,
                         'filter': filter_val,
                         'mem_size': mem,
-                        'time': time_value,
                     })
 
 # Write to CSV file
-csv_filename = 'data.csv'
+csv_filename = 'data/input_data.csv'
 with open(csv_filename, mode='w', newline='') as file:
-    fieldnames = ['k', 'insPar', 'filter', 'mem_size', 'time']
+    fieldnames = ['k', 'insPar', 'filter', 'mem_size']
     writer = csv.DictWriter(file, fieldnames=fieldnames)
     
     writer.writeheader()  # Write the header
