@@ -24,7 +24,7 @@ def read_csv(filename: str):
         for row in csv_reader:
             k.append(int(row['k']))
             insPar.append(int(row['insPar']))
-            filter.append(1000000)
+            filter.append(int(row['filter']))
             # Handle empty values for mem_size while keeping the type as int
             mem_size.append(int(row['mem_size']) if row['mem_size'] else 0)  # Default to 0 for empty cells
             # Append the time, converting it to float
@@ -33,7 +33,7 @@ def read_csv(filename: str):
 
 
 # Usage
-read_csv('data.csv')
+read_csv('data/input_data.csv')
 
 # Print global variables to verify
 print("k:", k)
@@ -59,7 +59,7 @@ def get_mems_info(output: str) -> tuple[str | None, str | None]:
     return (bw_steps, time_taken)
 
 
-csv_filename = 'execution_data.csv'
+csv_filename = 'data/output_data.csv'
 
 with open(csv_filename, mode='w', newline='') as csvfile:
     # create a csv to store results

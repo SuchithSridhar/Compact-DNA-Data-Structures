@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the data from the CSV file
-csv_filename = 'execution_data.csv'
+csv_filename = 'data/output_data.csv'
 data = pd.read_csv(csv_filename)
 
 # Get unique mem_size values
@@ -54,8 +54,8 @@ for i, mem_size in enumerate(mem_sizes):
 plt.tight_layout(pad=2.0)  # Increase padding between plots
 
 # Save the combined plots to a file
-output_filename = 'combined_plots.png'  # Specify your desired file name and format
+output_filename = 'plots/combined_plots.png'  # Specify your desired file name and format
 plt.savefig(output_filename, dpi=300, bbox_inches='tight')  # Save the figure
 
 # Show the combined plots
-plt.show()
+# plt.show()
