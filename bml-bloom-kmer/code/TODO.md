@@ -25,7 +25,7 @@
 
 ## MEDIUM
 
-- [ ] print ratios of things when building kmer-bloom-filter. Things like bits
+- [x] print ratios of things when building kmer-bloom-filter. Things like bits
       set to total bits, and total possible kmers (use appox of `4^k` not `5^k`)
       to kmers inserted. (`nour`)
 
