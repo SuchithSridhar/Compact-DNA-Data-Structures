@@ -1,6 +1,7 @@
 #include "bloom_filter.h"
 #include "file_utils.h"
 #include "kmer_filter.h"
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,9 +64,13 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Unable to write to file %s\n", argv[2]);
         return EXIT_FAILURE;
     }
+    size_t possible_kmers = pow(4, atol(argv[3]));
+    float_t bits_ratio = (double)r.bits_set / (double)atol(argv[4]);
+    float_t kmers_ratio = (double)r.kmers_inserted / (double)possible_kmers;
 
-    printf("Created a file %s where %zu bits set and %zu tuples inserted.\n",
-           argv[2], r.bits_set, r.kmers_inserted);
+    printf("Created a file %s where %zu/%zu (ratio = %.2f) bits set and %zu/%zu (ratio = %.2f) tuples inserted.\n",
+           argv[2], r.bits_set, atol(argv[4]), bits_ratio, r.kmers_inserted, possible_kmers, kmers_ratio);
+
 
     return EXIT_SUCCESS;
 }
