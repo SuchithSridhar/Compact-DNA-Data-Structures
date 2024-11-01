@@ -43,3 +43,5 @@
 - [ ] write code to build move table, adapt `suchi-move-table`
 
 - [ ] Move source files to src directory
+
+- [ ] Print number of forward steps in kmer_mem_finder
