@@ -82,5 +82,5 @@ TACACTTTGGGAA
 TTTGGGAACT
 TGGAGCATTTAGCTTTTGTCTGG
 
-Time taken to find all mems: 0.990000 ms
+Time taken to find all mems: 1.110000 ms
 Number of backward steps: 3711
