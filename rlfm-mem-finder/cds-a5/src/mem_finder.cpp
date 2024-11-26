@@ -117,10 +117,6 @@ LF_result_t LF(long i) {
 }
 */
 
-int64_t run_length(int64_t run) {
-    return select_B_L(s_run+2) - select_B_L(s_run+1)
-}
-
 int forward_backward(int64_t start, char *pattern, size_t pattern_size, int8_t direction) {
     int64_t s = 0;
     int64_t e = n-1;
@@ -141,22 +137,6 @@ int forward_backward(int64_t start, char *pattern, size_t pattern_size, int8_t d
 
         s_run = C[X] + pred_x_s;
         e_run = C[X] + pred_x_e;
-
-        // but s_run + offset may not be in the same run anymore, so we need to check.
-        // same for e_run + offset.
-
-        // TODO: This makes a shit ton of calls to select, we should
-        // cache it in some way, we always use pattern: 1 2, 2 3, 3 4
-        // so even caching a single number is enough.
-        while (s_offset >= run_length(s_run)) {
-            s_offset -= run_length(s_run);
-            s_run++;
-        }
-
-        while (e_offset >= run_length(e_run)) {
-            e_offset -= run_length(e_run);
-            e_run++;
-        }
 
         int64_t s = select_B_F(run_s + 1) + s_offset;
         int64_t e = select_B_F(run_e + 1) + e_offset;
