@@ -44,3 +44,7 @@ target_compile_options(invert PUBLIC -O2)
 add_executable(movelet src/invert_movelet.cpp)
 target_link_libraries(movelet sdsl)
 target_compile_options(movelet PUBLIC -O2)
+
+add_executable(rlfm_mem_finder src/mem_finder.cpp src/rlfm.cpp src/rlfm.h)
+target_link_libraries(rlfm_mem_finder sdsl)
+target_compile_options(rlfm_mem_finder PUBLIC -O2)
