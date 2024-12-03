@@ -17,15 +17,24 @@ int forward_backward(int64_t start, char *pattern, size_t pattern_size,
   int64_t s = 0;
   int64_t e = index.n - 1;
 
+  int64_t sn = s;
+  int64_t en = e;
+
   int pi = start;
   int counter = 0;
 
-  while (s <= e && pi < pattern_size && pi >= 0) {
+  while (s < e && pi < pattern_size && pi >= 0) {
     char x = pattern[pi];
-    s = index.LFC(s, x);
-    e = index.LFC(e, x);
+    sn = index.LFC(s, x);
+    en = index.LFC(e, x);
 
-    if (s < e)
+    printf("\t[%c] s: %ld -> %ld, e: %ld -> %ld e-s=%ld\n", x, s, sn, e, en,
+           en - sn);
+
+    s = sn;
+    e = en;
+
+    if (s >= e)
       break;
 
     pi += direction;
@@ -67,6 +76,7 @@ int find_mems(RLFMIndex &normal_index, RLFMIndex &revered_index, char *pattern,
     int64_t new_mem_start = mem_end - steps_bw + 1;
 
     mem_start = new_mem_start;
+    return mem_count;
   }
 
   return mem_count;

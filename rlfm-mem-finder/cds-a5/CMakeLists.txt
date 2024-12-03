@@ -24,7 +24,7 @@ if(NOT sdsl_POPULATED)
   add_subdirectory(${sdsl_SOURCE_DIR} ${sdsl_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -g")
 # compile with address sanitizer
 # add_compile_options(-fsanitize=address)
 # add_link_options(-fsanitize=address)
@@ -47,4 +47,4 @@ target_compile_options(movelet PUBLIC -O2)
 
 add_executable(rlfm_mem_finder src/mem_finder.cpp src/rlfm.cpp src/rlfm.h)
 target_link_libraries(rlfm_mem_finder sdsl)
-target_compile_options(rlfm_mem_finder PUBLIC -O2)
+target_compile_options(rlfm_mem_finder PUBLIC -g)

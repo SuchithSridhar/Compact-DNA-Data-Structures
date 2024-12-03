@@ -25,14 +25,14 @@ RLFMIndex::lf_result_t RLFMIndex::LF(long i) {
 
 long RLFMIndex::LFC(long i, char x) {
   int run = rank_B_L(i + 1) - 1;
-  int offset = i - select_B_L(run + 1);
+  int offset = i - (run + 1 <= r ? select_B_L(run + 1) : n - 1);
 
   char X = char_to_index[x];
 
   long pred_x = (*B_x_ranks[X])(run);
 
   int run_f = C[X] + pred_x;
-  long pos_f = select_B_F(run_f + 1) + offset;
+  long pos_f = run_f + 1 <= r ? select_B_F(run_f + 1) : n - 1;
 
   return pos_f;
 }
