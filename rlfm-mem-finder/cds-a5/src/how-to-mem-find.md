@@ -1,4 +1,4 @@
-This is a question instruction file on how to run the mem finding algorithm in
+This is an instruction file on how to run the mem finding algorithm in
 this directory. `mem_finder.cpp` uses the RLFM index to perform mem finding.
 
 You will need the BWT of the data and its reversed version. In other words,
