@@ -1,5 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Iinclude -g
+MATHFLAG = -lm
 BUILD_DIR = build
 SRC_DIR = .
 
@@ -10,15 +11,14 @@ BLOOM_FILTER_OBJS = $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o $(BUILD
 KMER_FILTER_OBJS = $(BUILD_DIR)/build_kmer_filter.o $(BUILD_DIR)/kmer_filter.o $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o $(BUILD_DIR)/file_utils.o
 KMER_SUBSTRINGS = $(BUILD_DIR)/kmer_substrings.o $(BUILD_DIR)/kmer_filter.o $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o $(BUILD_DIR)/file_utils.o $(BUILD_DIR)/string_utils.o $(BUILD_DIR)/ssvector.o
 MOVE_MEM_FINDER_OBJS = $(BUILD_DIR)/move_mem_finder.o $(BUILD_DIR)/move_table.o $(BUILD_DIR)/file_utils.o $(BUILD_DIR)/string_utils.o
-KMER_MEM_FINDER_OBJS = $(BUILD_DIR)/kmer_mem_finder.o $(BUILD_DIR)/move_table.o $(BUILD_DIR)/file_utils.o $(BUILD_DIR)/string_utils.o $(BUILD_DIR)/kmer_filter.o $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o
-
+KMER_MEM_FINDER_OBJS = $(BUILD_DIR)/kmer_mem_finder.o $(BUILD_DIR)/move_table.o $(BUILD_DIR)/file_utils.o $(BUILD_DIR)/string_utils.o $(BUILD_DIR)/kmer_filter.o $(BUILD_DIR)/bitvector.o $(BUILD_DIR)/bloom_filter.o 
 all: $(TARGETS)
 
 $(BUILD_DIR)/kmer_substrings: $(KMER_SUBSTRINGS)
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(BUILD_DIR)/build_kmer_filter: $(KMER_FILTER_OBJS)
+$(BUILD_DIR)/build_kmer_filter: $(KMER_FILTER_OBJS) $(MATHFLAG)
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 

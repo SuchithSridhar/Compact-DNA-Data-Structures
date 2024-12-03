@@ -151,9 +151,43 @@ int find_mems(move_table_t *mvt_straight, int mvt_straight_length,
     int64_t mem_start = 0;
     int64_t mem_end = 0;
     int64_t mem_count = 0;
+	
+	// Loop variables
+	int64_t steps_fw;
+	int64_t steps_bw;	
+	int64_t mem_boundary;
 
-    while (mem_end <= pattern_size - 1) {
-        int64_t steps_fw =
+	while(mem_start + min_mem_len -1 <= pattern_size){
+		mem_boundary = mem_start + min_mem_len -1;
+		steps_bw = forward_backward(mvt_straight, mvt_straight_length, mem_boundary,
+                             pattern, pattern_size, BACKWARD);
+
+		if(steps_bw < min_mem_len ){
+			mem_start = mem_boundary - steps_bw +1;
+			continue;
+		}
+
+		//gives the end of the current valid mem
+		steps_fw = forward_backward(mvt_reversed, mvt_reversed_length, mem_start,
+                             pattern, pattern_size, FORWARD);
+		mem_end = mem_start + steps_fw;
+
+        range_print_string(pattern, mem_start, mem_end);
+		mem_count++;
+
+		//setting the start of the next mem
+		if(mem_start + steps_fw >= pattern_size -1){
+			break;
+		}
+		steps_bw = forward_backward(mvt_straight, mvt_straight_length, mem_end,
+                             pattern, pattern_size, BACKWARD);
+		mem_start = mem_end - steps_bw +1;
+	}
+
+	//code bellow uses forward backward
+/*
+ 	while (mem_end <= pattern_size - 1) {
+		int64_t steps_fw =
             forward_backward(mvt_reversed, mvt_reversed_length, mem_start,
                              pattern, pattern_size, FORWARD);
         mem_end = mem_start + steps_fw;
@@ -178,6 +212,8 @@ int find_mems(move_table_t *mvt_straight, int mvt_straight_length,
         mem_start = new_mem_start;
     }
 
+*/
+	printf("mems found = %ld\n", mem_count);
     return mem_count;
 }
 
