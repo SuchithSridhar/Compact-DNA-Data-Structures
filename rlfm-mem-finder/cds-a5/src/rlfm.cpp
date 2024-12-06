@@ -1,8 +1,10 @@
 #include "rlfm.h"
+#include <cstdio>
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/rank_support.hpp>
 #include <sdsl/sd_vector.hpp>
+#include <utility>
 
 #define CHAR_COUNT 256
 
@@ -23,7 +25,86 @@ RLFMIndex::lf_result_t RLFMIndex::LF(long i) {
   return {.i = pos_f, .x = mapped_char};
 }
 
+long RLFMIndex::select_bl(int index) {
+  if (index <= 0) {
+    return 0;
+  } else if (index >= r) {
+    return n - 1;
+  }
+  return select_B_L(index);
+}
+
+long RLFMIndex::select_bf(int index) {
+  if (index <= 0) {
+    return 0;
+  } else if (index >= r) {
+    return n - 1;
+  }
+  return select_B_F(index);
+}
+
+long RLFMIndex::rank_bl(int index) {
+  if (index < 0) {
+    return 0;
+  } else if (index >= n) {
+    return r;
+  }
+  return rank_B_L(index);
+}
+
+long RLFMIndex::rank_bf(int index) {
+  if (index < 0) {
+    return 0;
+  } else if (index >= n) {
+    return r;
+  }
+  return rank_B_F(index);
+}
+
+std::pair<long, long> RLFMIndex::rangeUpdate(long s, long e, char x) {
+  int run_s = rank_bl(s + 1) - 1;
+  int off_s = s - select_bl(run_s + 1);
+
+  int run_e = rank_bl(e + 1) - 1;
+  int off_e = e - select_bl(run_e + 1);
+
+  while (run_s < r && H_L[run_s] != x) {
+    run_s++;
+    off_s = 0;
+  }
+
+  int changed = 0;
+  while (run_e >= 0 && H_L[run_e] != x) {
+    run_e--;
+    changed = 1;
+  }
+
+  if (changed) {
+    off_e = select_bl(run_e + 2) - select_bl(run_e + 1) - 1;
+  }
+
+  if (!((run_s) < (run_e) || ((run_s) == (run_e) && (off_s) <= (off_e)))) {
+    // we need to stop here, return -1 to indicate to caller
+    return std::make_pair(-1, -1);
+  }
+
+  char xi = char_to_index[x];
+
+  long pred_s = (*B_x_ranks[xi])(run_s);
+  long pred_e = (*B_x_ranks[xi])(run_e);
+
+  int run_sf = C[xi] + pred_s;
+  long pos_sf = select_bf(run_sf + 1) + off_s;
+
+  int run_ef = C[xi] + pred_e;
+  long pos_ef = select_bf(run_ef + 1) + off_e;
+
+  return std::make_pair(pos_sf, pos_ef);
+}
+
 long RLFMIndex::LFC(long i, char x) {
+  if (i == -1)
+    i = 0;
   int run = rank_B_L(i + 1) - 1;
   int offset = i - (run + 1 <= r ? select_B_L(run + 1) : n - 1);
 
@@ -33,6 +114,9 @@ long RLFMIndex::LFC(long i, char x) {
 
   int run_f = C[X] + pred_x;
   long pos_f = run_f + 1 <= r ? select_B_F(run_f + 1) : n - 1;
+
+  printf("\t\trun=%d offset=%d char=%d pred_x=%ld C[X]=%d run_f=%d pos_f=%ld\n",
+         run, offset, X, pred_x, C[X], run_f, pos_f);
 
   return pos_f;
 }

@@ -21,6 +21,11 @@ public:
   lf_result_t LF(long i);
   long LFC(long i, char x);
   void load_index(char *input_filename);
+  long select_bf(int index);
+  long select_bl(int index);
+  long rank_bf(int index);
+  long rank_bl(int index);
+  std::pair<long, long> rangeUpdate(long s, long e, char x);
 
 private:
   // all the characters in T or BWT(T)

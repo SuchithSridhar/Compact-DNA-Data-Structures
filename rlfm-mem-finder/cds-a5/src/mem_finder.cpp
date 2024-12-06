@@ -1,5 +1,6 @@
 #include "rlfm.h"
 #include <cstdio>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <sdsl/rank_support.hpp>
 #include <sdsl/sd_vector.hpp>
 #include <strings.h>
+#include <utility>
 
 #define FORWARD 1
 #define BACKWARD -1
@@ -17,32 +19,30 @@ int forward_backward(int64_t start, char *pattern, size_t pattern_size,
   int64_t s = 0;
   int64_t e = index.n - 1;
 
-  int64_t sn = s;
-  int64_t en = e;
-
   int pi = start;
   int counter = 0;
 
-  while (s < e && pi < pattern_size && pi >= 0) {
-    char x = pattern[pi];
-    sn = index.LFC(s, x);
-    en = index.LFC(e, x);
+  while (s <= e && pi < pattern_size && pi >= 0) {
+    char c = pattern[pi];
+    std::pair<long, long> se = index.rangeUpdate(s, e, c);
 
-    printf("\t[%c] s: %ld -> %ld, e: %ld -> %ld e-s=%ld\n", x, s, sn, e, en,
-           en - sn);
+    // printf("\t[%c] s: %ld -> %ld, e: %ld -> %ld e-s=%ld\n", c, s, se.first,
+    // e,
+    //     se.second, se.second - se.first);
 
-    s = sn;
-    e = en;
+    // se.first is -1 if need to break
+    s = se.first;
+    e = se.second;
 
-    if (s >= e)
+    if (s > e || s == -1)
       break;
 
     pi += direction;
     counter++;
   }
 
-  printf("forward_backward(start= %ld, direction: %d) -> %d\n", start,
-         direction, counter);
+  // printf("forward_backward(start= %ld, direction: %d) -> %d\n", start,
+  //       direction, counter);
   return counter;
 }
 
@@ -76,7 +76,6 @@ int find_mems(RLFMIndex &normal_index, RLFMIndex &revered_index, char *pattern,
     int64_t new_mem_start = mem_end - steps_bw + 1;
 
     mem_start = new_mem_start;
-    return mem_count;
   }
 
   return mem_count;
