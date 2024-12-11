@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - -I../string-utils
+    - -I../file-utils
+    - -I../include
+
